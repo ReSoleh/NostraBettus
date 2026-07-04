@@ -5,114 +5,172 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>La Schedina · Mondiale 2026</title>
 <style>
-  :root { --ink:#1B2A4A; --red:#C8102E; --paper:#FBF8EF; --line:#D9D2BC; --dim:#8A8168; --ok:#2E7D32; --gold:#F0C040; }
+  :root {
+    --bg:#F5F7F6; --surface:#FFFFFF; --surface-2:#FAFBFA;
+    --ink:#1A1D1B; --muted:#6B716E; --line:#E2E6E3;
+    --accent:#1F8F76; --accent-text:#146B58; --accent-soft:#E3F3EF;
+    --negative:#C1573D; --negative-soft:#FBEDE9;
+    --font-display:Georgia,"Iowan Old Style","Palatino Linotype",serif;
+    --font-sans:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif;
+    --radius:10px;
+    --shadow:0 1px 2px rgba(26,29,27,.04), 0 10px 28px -14px rgba(26,29,27,.18);
+  }
   * { box-sizing:border-box; }
-  body { margin:0; background:#E8E2D0; font-family:Georgia,'Times New Roman',serif; color:var(--ink); padding:24px 12px; }
-  .card { max-width:780px; margin:0 auto; background:var(--paper); border:2px solid var(--ink); border-radius:6px; box-shadow:4px 4px 0 rgba(27,42,74,.25); overflow:hidden; }
-  .head { background:var(--ink); color:var(--paper); padding:14px 20px; display:flex; justify-content:space-between; align-items:baseline; flex-wrap:wrap; gap:8px; }
-  .head h1 { margin:0; font-size:22px; letter-spacing:1px; }
-  .head h1 span { color:var(--gold); }
-  .head small { opacity:.75; font-size:12px; }
-  .body { padding:20px; }
-  .eyebrow { font-size:11px; letter-spacing:2px; color:var(--red); font-weight:700; margin:0 0 6px; }
-  .fixtures { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:16px; }
-  .fx { font-size:12px; padding:6px 10px; border-radius:4px; cursor:pointer; border:1.5px solid var(--line); background:#fff; color:var(--ink); font-weight:600; font-family:inherit; }
-  .fx.on { background:var(--red); border-color:var(--red); color:#fff; }
-  .fx em { opacity:.65; font-weight:400; font-style:normal; }
-  .pickers { display:flex; gap:16px; flex-wrap:wrap; margin-bottom:16px; }
+  body { margin:0; background:var(--bg); font-family:var(--font-sans); color:var(--ink); padding:28px 12px; }
+  .card { max-width:820px; margin:0 auto; background:var(--surface); border:1px solid var(--line); border-radius:16px; box-shadow:var(--shadow); overflow:hidden; }
+  .head { background:var(--surface-2); border-bottom:1px solid var(--line); padding:22px 24px; display:flex; justify-content:space-between; align-items:flex-start; flex-wrap:wrap; gap:12px; }
+  .head h1 { margin:0; font-family:var(--font-display); font-size:23px; font-weight:600; letter-spacing:.2px; }
+  .head h1 span { color:var(--accent-text); font-weight:600; }
+  .head p.tagline { margin:5px 0 0; font-size:12.5px; color:var(--muted); }
+  .flagchip { font-size:11px; color:var(--muted); font-variant-numeric:tabular-nums; background:var(--surface); border:1px solid var(--line); border-radius:999px; padding:5px 12px; white-space:nowrap; }
+  .body { padding:24px; }
+  .eyebrow { font-size:11px; letter-spacing:1.5px; text-transform:uppercase; color:var(--muted); font-weight:700; margin:0 0 10px; }
+
+  /* fixtures */
+  .fixtures { display:flex; gap:8px; overflow-x:auto; padding:2px 2px 8px; margin-bottom:20px; }
+  .fx { flex:0 0 auto; font-size:12.5px; padding:8px 13px; border-radius:999px; cursor:pointer; border:1px solid var(--line); background:var(--surface); color:var(--ink); font-weight:600; font-family:inherit; white-space:nowrap; transition:border-color .15s, background .15s, color .15s; }
+  .fx:hover { border-color:var(--ink); }
+  .fx.on { background:var(--ink); border-color:var(--ink); color:#fff; }
+  .fx em { opacity:.65; font-weight:400; font-style:normal; margin-left:5px; }
+
+  /* team pickers */
+  .pickers { display:flex; gap:20px; flex-wrap:wrap; margin-bottom:20px; position:relative; }
   .picker { flex:1; min-width:230px; }
-  select { width:100%; padding:10px 8px; font-size:16px; font-weight:600; background:#fff; color:var(--ink); border:2px solid var(--ink); border-radius:4px; font-family:inherit; }
-  .elorow { display:flex; align-items:center; gap:8px; margin-top:6px; }
-  .elorow label { font-size:12px; color:#6B6350; }
-  .elorow input { width:90px; padding:4px 6px; font-family:monospace; font-size:14px; border:1px solid var(--line); border-radius:4px; background:#fff; color:var(--ink); }
-  .homebtn { font-size:11px; padding:4px 8px; border-radius:4px; cursor:pointer; border:1px solid var(--line); background:#fff; color:#6B6350; font-weight:700; font-family:inherit; }
-  .homebtn.on { background:var(--red); border-color:var(--red); color:#fff; }
-  .modes { display:flex; gap:8px; margin-bottom:20px; }
-  .modes button { flex:1; padding:8px 0; font-size:13px; font-weight:700; cursor:pointer; border:2px solid var(--ink); border-radius:4px; background:#fff; color:var(--ink); font-family:inherit; }
-  .modes button.on { background:var(--ink); color:var(--paper); }
-  .matchcard { text-align:center; padding:10px 0 16px; border-top:1px dashed var(--line); border-bottom:1px dashed var(--line); margin-bottom:18px; }
-  .matchcard .big { font-size:26px; font-weight:800; }
-  .matchcard .big i { color:var(--red); font-size:18px; font-style:normal; }
-  .matchcard .sub { font-family:monospace; font-size:13px; color:#6B6350; margin-top:4px; }
-  .bar { margin-bottom:10px; }
-  .bar .top { display:flex; justify-content:space-between; font-size:13px; margin-bottom:3px; flex-wrap:wrap; gap:2px; }
-  .bar .top b.hl { color:var(--red); }
-  .bar .top code { color:var(--ink); } .bar .top code i { color:var(--dim); font-style:normal; }
-  .track { height:14px; background:#EFE9D8; border-radius:2px; overflow:hidden; position:relative; }
-  .fill { height:100%; background:var(--ink); transition:width .4s ease; }
-  .fill.hl { background:var(--red); }
-  .unc { position:absolute; top:0; height:100%; background:rgba(27,42,74,.18); }
-  .qual { background:#fff; border:2px solid var(--red); border-radius:4px; padding:10px 14px; margin:16px 0; display:flex; justify-content:space-between; flex-wrap:wrap; gap:6px; }
-  .qual b { color:var(--red); font-size:14px; } .qual code { font-size:14px; }
-  .cols { display:flex; gap:16px; flex-wrap:wrap; margin-top:18px; }
-  .col { flex:1; min-width:230px; }
-  .row { display:flex; justify-content:space-between; font-size:14px; padding:5px 0; border-bottom:1px dotted var(--line); }
-  .row code i { color:var(--dim); font-style:normal; }
-  .box { margin-top:20px; border:2px solid var(--ink); border-radius:4px; overflow:hidden; }
-  .box .bhead { background:var(--ink); color:var(--paper); padding:8px 14px; font-size:13px; font-weight:800; letter-spacing:2px; }
-  .box .bbody { padding:14px; background:#fff; }
-  .hint { font-size:13px; color:#6B6350; margin-bottom:10px; }
-  .oddsgrid { display:grid; grid-template-columns:repeat(auto-fit,minmax(88px,1fr)); gap:8px; margin-bottom:14px; }
-  .oddsgrid .lab { font-size:10px; letter-spacing:1px; color:var(--red); font-weight:700; margin-bottom:2px; }
-  .oddsgrid input { width:100%; padding:6px; font-family:monospace; font-size:14px; border:1px solid var(--line); border-radius:4px; color:var(--ink); background:var(--paper); }
-  .blend { display:flex; align-items:center; gap:10px; margin-bottom:12px; flex-wrap:wrap; font-size:12px; color:#6B6350; }
-  .blend input[type=range]{ flex:1; min-width:120px; accent-color:var(--red); }
-  .vgrid { display:grid; grid-template-columns:1.9fr 1fr 1fr 1fr 1fr 1.3fr; gap:4px; font-size:13px; font-family:monospace; padding:6px 0; border-bottom:1px dotted var(--line); }
-  .vgrid.hdr { font-size:10px; letter-spacing:1px; color:var(--dim); font-weight:700; border-bottom:2px solid var(--ink); font-family:inherit; }
-  .vgrid.value { background:#F3FAF0; }
-  .vgrid .name { font-family:Georgia,serif; }
-  .ev-pos { color:var(--ok); font-weight:700; } .ev-neg { color:var(--red); font-weight:700; }
-  .verdict { font-family:Georgia,serif; font-size:12px; font-weight:700; }
-  .note { margin-top:20px; font-size:12px; color:var(--dim); line-height:1.5; border-top:1px dashed var(--line); padding-top:12px; }
+  @media (min-width:640px){
+    .pickers::before{ content:"vs"; position:absolute; left:50%; top:22px; transform:translate(-50%,-50%);
+      font-family:var(--font-display); font-size:12px; font-weight:600; color:var(--muted); background:var(--surface);
+      width:28px; height:28px; border:1px solid var(--line); border-radius:50%; display:flex; align-items:center; justify-content:center; }
+  }
+  select { width:100%; padding:11px 10px; font-size:15px; font-weight:600; background:var(--surface); color:var(--ink); border:1.5px solid var(--line); border-radius:8px; font-family:inherit; }
+  select:focus { outline:2px solid var(--accent); outline-offset:1px; border-color:var(--accent); }
+  .elorow { display:flex; align-items:center; gap:8px; margin-top:8px; }
+  .elorow label { font-size:12px; color:var(--muted); }
+  .elorow input { width:80px; padding:5px 7px; font-size:13px; font-variant-numeric:tabular-nums; border:1px solid var(--line); border-radius:6px; background:var(--surface-2); color:var(--ink); }
+  .homebtn { font-size:11px; padding:5px 10px; border-radius:999px; cursor:pointer; border:1px solid var(--line); background:var(--surface); color:var(--muted); font-weight:600; font-family:inherit; }
+  .homebtn.on { background:var(--accent-soft); border-color:var(--accent); color:var(--accent-text); }
+
+  /* mode segmented control */
+  .modes { display:flex; gap:4px; background:var(--surface-2); border:1px solid var(--line); border-radius:10px; padding:4px; margin-bottom:22px; }
+  .modes button { flex:1; padding:9px 0; font-size:13px; font-weight:600; cursor:pointer; border:none; border-radius:7px; background:transparent; color:var(--muted); font-family:inherit; }
+  .modes button.on { background:var(--surface); color:var(--ink); box-shadow:0 1px 3px rgba(26,29,27,.08); }
+
+  .matchcard { text-align:center; padding:14px 0 20px; border-bottom:1px solid var(--line); margin-bottom:20px; }
+  .matchcard .big { font-family:var(--font-display); font-size:24px; font-weight:600; }
+  .matchcard .big i { color:var(--muted); font-size:15px; font-style:normal; font-weight:400; margin:0 6px; }
+  .matchcard .sub { font-size:12.5px; color:var(--muted); margin-top:6px; font-variant-numeric:tabular-nums; }
+
+  .bar { margin-bottom:14px; }
+  .bar .top { display:flex; justify-content:space-between; font-size:13.5px; margin-bottom:6px; flex-wrap:wrap; gap:4px; }
+  .bar .top b { font-weight:600; }
+  .bar .top b.hl { color:var(--accent-text); }
+  .bar .top code { font-family:inherit; font-variant-numeric:tabular-nums; color:var(--ink); }
+  .bar .top code i { color:var(--muted); font-style:normal; }
+  .track { height:10px; background:var(--surface-2); border:1px solid var(--line); border-radius:6px; overflow:hidden; position:relative; }
+  .fill { height:100%; background:var(--muted); border-radius:6px; transition:width .4s ease; }
+  .fill.hl { background:var(--accent); }
+  .unc { position:absolute; top:0; height:100%; background:rgba(31,143,118,.16); }
+
+  .qual { background:var(--accent-soft); border:1px solid var(--accent); border-radius:10px; padding:12px 16px; margin:18px 0; display:flex; justify-content:space-between; flex-wrap:wrap; gap:8px; }
+  .qual b { color:var(--accent-text); font-size:13.5px; } .qual code { font-size:13.5px; font-variant-numeric:tabular-nums; }
+
+  .cols { display:grid; grid-template-columns:1fr 1fr; gap:16px; margin-top:20px; }
+  @media (max-width:600px){ .cols{ grid-template-columns:1fr; } }
+  .col { background:var(--surface-2); border:1px solid var(--line); border-radius:10px; padding:14px 16px; }
+  .row { display:flex; justify-content:space-between; font-size:13.5px; padding:6px 0; border-bottom:1px dotted var(--line); }
+  .row:last-child { border-bottom:none; }
+  .row code { font-variant-numeric:tabular-nums; }
+  .row code i { color:var(--muted); font-style:normal; }
+
+  /* accordion sections */
+  details.box { border:1px solid var(--line); border-radius:10px; overflow:hidden; margin-bottom:16px; background:var(--surface); }
+  details.box > summary { list-style:none; cursor:pointer; padding:14px 16px; font-size:12.5px; font-weight:700; letter-spacing:.5px; text-transform:uppercase; color:var(--ink); background:var(--surface-2); display:flex; justify-content:space-between; align-items:center; gap:8px; }
+  details.box > summary::-webkit-details-marker { display:none; }
+  details.box > summary::after { content:"+"; font-size:16px; color:var(--muted); font-weight:400; }
+  details.box[open] > summary::after { content:"–"; }
+  details.box > summary:hover { color:var(--accent-text); }
+  details.box .bbody { padding:16px; background:var(--surface); }
+  .hint { font-size:13px; color:var(--muted); margin-bottom:12px; line-height:1.55; }
+
+  .apirow { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+  .apirow input { flex:1; min-width:220px; padding:10px; font-variant-numeric:tabular-nums; font-size:13px; border:1px solid var(--line); border-radius:8px; background:var(--surface-2); color:var(--ink); font-family:inherit; }
+
+  .oddsgrid { display:grid; grid-template-columns:repeat(auto-fit,minmax(86px,1fr)); gap:8px; margin-bottom:14px; }
+  .oddsgrid .lab { font-size:10px; letter-spacing:.5px; text-transform:uppercase; color:var(--muted); font-weight:700; margin-bottom:3px; }
+  .oddsgrid input { width:100%; padding:8px; font-variant-numeric:tabular-nums; font-size:14px; border:1px solid var(--line); border-radius:8px; color:var(--ink); background:var(--surface-2); font-family:inherit; }
+
+  .blend { display:flex; align-items:center; gap:10px; margin-bottom:12px; flex-wrap:wrap; font-size:12px; color:var(--muted); }
+  .blend input[type=range] { flex:1; min-width:120px; accent-color:var(--accent); }
+
+  .vgrid { display:grid; grid-template-columns:1.7fr .85fr .85fr .85fr .85fr 1.3fr; gap:6px; font-size:13px; padding:8px 4px; border-bottom:1px solid var(--line); align-items:center; }
+  .vgrid.hdr { font-size:10.5px; letter-spacing:.5px; text-transform:uppercase; color:var(--muted); font-weight:700; border-bottom:1.5px solid var(--ink); }
+  .vgrid.value { background:var(--accent-soft); border-radius:6px; }
+  .vgrid .name { font-family:var(--font-display); }
+  .vgrid div { font-variant-numeric:tabular-nums; }
+  .ev-pos { color:var(--accent-text); font-weight:700; } .ev-neg { color:var(--negative); font-weight:700; }
+  .badge { display:inline-block; font-size:11px; font-weight:700; padding:3px 9px; border-radius:999px; white-space:nowrap; }
+  .badge.good { background:var(--accent-soft); color:var(--accent-text); }
+  .badge.bad { background:var(--negative-soft); color:var(--negative); }
+  .badge.neutral { background:var(--surface-2); color:var(--muted); }
+
+  .note { margin-top:22px; font-size:12px; color:var(--muted); line-height:1.6; border-top:1px solid var(--line); padding-top:14px; }
   .result-form { display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-top:8px; }
-  .result-form input { width:52px; padding:6px; font-family:monospace; font-size:15px; text-align:center; border:1px solid var(--line); border-radius:4px; background:var(--paper); }
-  .btn { padding:7px 14px; font-size:13px; font-weight:700; border:2px solid var(--ink); background:var(--ink); color:var(--paper); border-radius:4px; cursor:pointer; font-family:inherit; }
-  .btn.ghost { background:#fff; color:var(--ink); }
-  .flash { font-size:12px; color:var(--ok); font-weight:700; }
-  .stat { display:inline-block; background:var(--paper); border:1px solid var(--line); border-radius:4px; padding:6px 12px; margin:0 8px 8px 0; font-size:13px; }
-  .stat b { font-family:monospace; font-size:16px; display:block; }
-  .logrow { font-size:12px; font-family:monospace; padding:5px 0; border-bottom:1px dotted var(--line); display:flex; justify-content:space-between; flex-wrap:wrap; gap:4px; }
-  .logrow .g { color:var(--ok); font-weight:700; } .logrow .b { color:var(--red); font-weight:700; }
-  @media (max-width:540px){ .vgrid{ grid-template-columns:1.5fr 1fr 1fr 1fr 1fr 1.1fr; font-size:11px; } .matchcard .big{ font-size:20px; } }
+  .result-form input { width:52px; padding:7px; font-variant-numeric:tabular-nums; font-size:15px; text-align:center; border:1px solid var(--line); border-radius:8px; background:var(--surface-2); }
+  .btn { padding:9px 16px; font-size:13px; font-weight:600; border:1px solid var(--ink); background:var(--ink); color:#fff; border-radius:8px; cursor:pointer; font-family:inherit; }
+  .btn:hover { opacity:.88; }
+  .btn.ghost { background:var(--surface); color:var(--ink); border-color:var(--line); }
+  .btn.ghost:hover { border-color:var(--ink); opacity:1; }
+  .flash { font-size:12px; color:var(--accent-text); font-weight:700; }
+  .stat { display:inline-block; background:var(--surface-2); border:1px solid var(--line); border-radius:8px; padding:8px 14px; margin:0 8px 8px 0; font-size:12.5px; color:var(--muted); }
+  .stat b { font-variant-numeric:tabular-nums; font-size:17px; display:block; color:var(--ink); margin-top:2px; }
+  .logrow { font-size:12px; padding:7px 0; border-bottom:1px dotted var(--line); display:flex; justify-content:space-between; flex-wrap:wrap; gap:4px; font-variant-numeric:tabular-nums; }
+  .logrow .g { color:var(--accent-text); font-weight:700; } .logrow .b { color:var(--negative); font-weight:700; }
+
+  @media (max-width:540px){
+    .vgrid{ grid-template-columns:1.4fr .8fr .8fr .8fr .8fr 1.1fr; font-size:11px; }
+    .matchcard .big{ font-size:19px; }
+  }
 </style>
 </head>
 <body>
 <div class="card">
   <div class="head">
     <div>
-      <h1>LA SCHEDINA <span>· MONDIALE 2026</span></h1>
-      <small>Elo dinamico + Poisson/Dixon-Coles + fusione mercato + verifica Brier</small>
+      <h1>La Schedina <span>· Mondiale 2026</span></h1>
+      <p class="tagline">Elo dinamico + Poisson/Dixon-Coles + fusione mercato + verifica Brier</p>
     </div>
-    <small style="font-family:monospace">USA · CAN · MEX</small>
+    <span class="flagchip">USA · CAN · MEX</span>
   </div>
   <div class="body">
-    <div class="box" style="margin-bottom:16px">
-      <div class="bhead">DATI LIVE — FOOTBALL-DATA.ORG</div>
+    <details class="box">
+      <summary>Dati live — football-data.org</summary>
       <div class="bbody">
         <div class="hint">Incolla qui la tua chiave API gratuita (2 minuti su
         <b>football-data.org</b> → Register → arriva via email, nessuna carta richiesta).
         Con la chiave: partite, risultati ed Elo si aggiornano da soli, più marcatori/assist reali.
-        Senza chiave, il tool funziona lo stesso ma con inserimento manuale.</div>
-        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
-          <input id="apiKey" type="text" placeholder="La tua X-Auth-Token qui" style="flex:1;min-width:220px;padding:8px;font-family:monospace;font-size:13px;border:1px solid var(--line);border-radius:4px">
+        Senza chiave, il tool funziona lo stesso ma con inserimento manuale.
+        <br><b>Nota:</b> questa funzione richiede che la pagina sia aperta via http/https (es. su
+        GitHub Pages) — aprendo il file direttamente dal computer (<code>file://</code>) il browser
+        blocca la richiesta per policy di sicurezza (CORS), quindi qui in locale può non funzionare.</div>
+        <div class="apirow">
+          <input id="apiKey" type="text" placeholder="La tua X-Auth-Token qui">
           <button class="btn" id="saveKey">Salva e collega</button>
           <button class="btn ghost" id="refreshNow">🔄 Aggiorna ora</button>
         </div>
-        <div id="apiStatus" style="font-size:12px;margin-top:8px;color:var(--dim)"></div>
+        <div id="apiStatus" style="font-size:12px;margin-top:8px;color:var(--muted)"></div>
       </div>
-    </div>
+    </details>
 
-    <p class="eyebrow">PARTITE IN PROGRAMMA — CLICCA PER CARICARE</p>
+    <p class="eyebrow">Partite in programma — clicca per caricare</p>
     <div class="fixtures" id="fixtures"></div>
 
     <div class="pickers">
       <div class="picker">
-        <p class="eyebrow">SQUADRA 1</p>
+        <p class="eyebrow">Squadra 1</p>
         <select id="selA"></select>
         <div class="elorow"><label>Rating Elo</label><input type="number" id="eloA"><button class="homebtn" id="homeA">in casa?</button></div>
       </div>
       <div class="picker">
-        <p class="eyebrow">SQUADRA 2</p>
+        <p class="eyebrow">Squadra 2</p>
         <select id="selB"></select>
         <div class="elorow"><label>Rating Elo</label><input type="number" id="eloB"><button class="homebtn" id="homeB">in casa?</button></div>
       </div>
@@ -126,32 +184,27 @@
     <div class="matchcard">
       <div class="big" id="matchTitle"></div>
       <div class="sub" id="matchSub"></div>
-      <div class="sub" id="uncSub" style="color:var(--dim)"></div>
+      <div class="sub" id="uncSub" style="color:var(--muted)"></div>
     </div>
 
     <div id="bars"></div>
     <div class="qual" id="qualBox" style="display:none"></div>
 
     <div class="cols">
-      <div class="col"><p class="eyebrow">ALTRI MERCATI</p><div id="markets"></div></div>
-      <div class="col"><p class="eyebrow">MULTIGOL (totale gol partita)</p><div id="multigoal"></div></div>
+      <div class="col"><p class="eyebrow">Altri mercati</p><div id="markets"></div></div>
+      <div class="col"><p class="eyebrow">Risultati più probabili</p><div id="topScores"></div></div>
     </div>
 
-    <div style="margin-top:16px">
-      <p class="eyebrow">RISULTATI FISSI — GRIGLIA COMPLETA</p>
-      <div id="scoreGrid"></div>
-    </div>
-
-    <div class="box" style="margin-top:20px">
-      <div class="bhead">MARCATORI E ASSIST (dati reali dalla competizione, se chiave attiva)</div>
+    <details class="box">
+      <summary>Marcatori e assist</summary>
       <div class="bbody">
         <div class="hint" id="scorersHint">Attiva la chiave API sopra per vedere marcatori/assist reali del torneo con probabilità stimata per questa partita.</div>
         <div id="scorersTable"></div>
       </div>
-    </div>
+    </details>
 
-    <div class="box">
-      <div class="bhead">QUOTE DEL BOOKMAKER → FUSIONE E CACCIA AL VALORE</div>
+    <details class="box">
+      <summary>Quote del bookmaker → fusione e caccia al valore</summary>
       <div class="bbody">
         <div class="hint">Inserisci le quote (es. 2.10). Con la terna 1X2 completa, il modello si <b>fonde</b>
         con le probabilità del mercato (senza margine): il mercato sa cose che l'Elo non vede.</div>
@@ -161,13 +214,13 @@
           <input type="range" id="blendW" min="0" max="100" value="65">
           <code id="blendLab" style="color:var(--ink)">65% mercato · 35% modello</code>
         </div>
-        <div id="marginInfo" style="font-size:12px;font-family:monospace;color:#6B6350;margin-bottom:10px"></div>
+        <div id="marginInfo" style="font-size:12px;color:var(--muted);margin-bottom:10px"></div>
         <div id="valueTable"></div>
       </div>
-    </div>
+    </details>
 
-    <div class="box">
-      <div class="bhead">VERIFICA DEL MODELLO — PRONOSTICI E BRIER SCORE</div>
+    <details class="box">
+      <summary>Verifica del modello — pronostici e Brier score</summary>
       <div class="bbody">
         <div class="hint">Prima della partita salva il pronostico; dopo, registra il risultato: il rating Elo
         si aggiorna e il pronostico viene valutato col <b>Brier score</b> (0 = perfetto, 0.667 = tirare a caso
@@ -190,14 +243,14 @@
           <button class="homebtn" id="resetLog">svuota registro pronostici</button>
         </div>
       </div>
-    </div>
+    </details>
 
     <div class="note">
       <b>Il modello in breve:</b> differenza Elo → probabilità di vittoria attesa e gol attesi (totale 2.55
       nei gironi, 2.35 a eliminazione diretta, dove si segna meno) → matrice di Poisson con correzione
       Dixon-Coles per i punteggi bassi. Se inserisci le quote 1X2, le probabilità de-vigorate del mercato
       vengono fuse col modello (peso regolabile) e la caccia al valore usa la stima fusa, più prudente.
-      La fascia grigia sulle barre è l'incertezza (±40 punti Elo). I rating si aggiornano registrando i
+      La fascia colorata sulle barre è l'incertezza (±40 punti Elo). I rating si aggiornano registrando i
       risultati (formula eloratings.net, K=60). Tutto resta salvato sul tuo dispositivo. Strumento
       statistico a scopo informativo: nessun modello prevede il futuro.
     </div>
@@ -317,8 +370,8 @@ function updateElo(nA,nB,gA,gB,home){
 
 // ================= dati live (football-data.org) =================
 async function fetchLive(){
-  if(!apiKey){ $("apiStatus").innerHTML = `<span style="color:var(--dim)">Nessuna chiave inserita — modalità manuale.</span>`; return; }
-  $("apiStatus").innerHTML = `<span style="color:var(--dim)">Aggiornamento in corso…</span>`;
+  if(!apiKey){ $("apiStatus").innerHTML = `<span style="color:var(--muted)">Nessuna chiave inserita — modalità manuale.</span>`; return; }
+  $("apiStatus").innerHTML = `<span style="color:var(--muted)">Aggiornamento in corso…</span>`;
   try{
     const [mRes, sRes] = await Promise.all([
       fetch("https://api.football-data.org/v4/competitions/WC/matches", { headers:{ "X-Auth-Token": apiKey } }),
@@ -340,11 +393,11 @@ async function fetchLive(){
         .filter(s => NAME_MAP[s.team?.name])
         .map(s => ({ name:s.player.name, team:toIT(s.team.name), goals:s.goals||0, assists:s.assists||0 }));
     }
-    $("apiStatus").innerHTML = `<span style="color:var(--ok)">✓ Aggiornato ${new Date().toLocaleTimeString("it-IT")} · ${liveFixtures.length} partite tra le squadre in gara</span>`;
+    $("apiStatus").innerHTML = `<span style="color:var(--accent-text)">✓ Aggiornato ${new Date().toLocaleTimeString("it-IT")} · ${liveFixtures.length} partite tra le squadre in gara</span>`;
     autoProcessResults();
     render();
   }catch(err){
-    $("apiStatus").innerHTML = `<span style="color:var(--red)">Errore: ${err.message}</span>`;
+    $("apiStatus").innerHTML = `<span style="color:var(--negative)">Errore: ${err.message}</span>`;
   }
 }
 
@@ -404,7 +457,7 @@ function buildSelects(){
   });
 }
 function buildOddsInputs(){
-  const defs=[["o1","QUOTA 1"],["ox","QUOTA X"],["o2","QUOTA 2"],["over","OVER 2.5"],["under","UNDER 2.5"],["gg","GOL"],["ng","NO GOL"]];
+  const defs=[["o1","Quota 1"],["ox","Quota X"],["o2","Quota 2"],["over","Over 2.5"],["under","Under 2.5"],["gg","Gol"],["ng","No gol"]];
   $("oddsInputs").innerHTML = defs.map(([k,l])=>
     `<div><div class="lab">${l}</div><input inputmode="decimal" placeholder="—" data-odd="${k}" value="${S.odds[k]}"></div>`).join("");
   document.querySelectorAll("[data-odd]").forEach(inp=>{
@@ -459,7 +512,7 @@ function render(){
     const p=probs[i], [pl,ph]=rng[i];
     const bland = bl.mkt ? ` <i>· fusa ${fmtP(bl.p[i])}</i>` : "";
     return `<div class="bar">
-      <div class="top"><b class="${i===best?"hl":""}">${lab}${i===best?" ◀ PIÙ PROBABILE":""}</b>
+      <div class="top"><b class="${i===best?"hl":""}">${lab}${i===best?" ◀ più probabile":""}</b>
       <code>${fmtP(p)}${bland} <i>· quota equa ${odd(bl.p[i])}</i></code></div>
       <div class="track">
         <div class="unc" style="left:${Math.min(pl,ph)*100}%;width:${Math.abs(ph-pl)*100}%"></div>
@@ -469,7 +522,7 @@ function render(){
 
   if(S.knockout){
     $("qualBox").style.display="flex";
-    $("qualBox").innerHTML=`<b>PASSAGGIO DEL TURNO</b><code>${S.A} ${fmtP(m.qualA)} · ${S.B} ${fmtP(1-m.qualA)}</code>`;
+    $("qualBox").innerHTML=`<b>Passaggio del turno</b><code>${S.A} ${fmtP(m.qualA)} · ${S.B} ${fmtP(1-m.qualA)}</code>`;
   } else $("qualBox").style.display="none";
 
   $("markets").innerHTML=[["Over 2.5",m.pOver],["Under 2.5",1-m.pOver],["Gol (GG)",m.pGG],["No Gol (NG)",1-m.pGG]]
@@ -479,7 +532,7 @@ function render(){
   $("blendLab").textContent = `${Math.round(S.blendW*100)}% mercato · ${Math.round((1-S.blendW)*100)}% modello`;
 
   window._m=m; window._bl=bl;
-  renderValue(m,bl); renderStats(); renderMultigoal(m); renderScoreGrid(m); renderScorers(m);
+  renderValue(m,bl); renderStats(); renderTopScores(m); renderScorers(m);
 }
 
 function renderValue(m,bl){
@@ -497,21 +550,23 @@ function renderValue(m,bl){
     ["No Gol (NG)", num(S.odds.ng), 1-m.pGG],
   ].filter(r=>r[1]);
   if(!rows.length){
-    $("valueTable").innerHTML=`<div style="font-size:13px;color:var(--dim);font-style:italic">Nessuna quota inserita — compila almeno un campo.</div>`;
+    $("valueTable").innerHTML=`<div style="font-size:13px;color:var(--muted);font-style:italic">Nessuna quota inserita — compila almeno un campo.</div>`;
     return;
   }
-  let html=`<div class="vgrid hdr"><div>ESITO</div><div>QUOTA</div><div>P. BOOK</div><div>P. STIMATA</div><div>EV</div><div>VERDETTO</div></div>`;
+  let html=`<div class="vgrid hdr"><div>Esito</div><div>Quota</div><div>P. book</div><div>P. stimata</div><div>EV</div><div>Verdetto</div></div>`;
   rows.forEach(([lab,o,p])=>{
     const ev=p*o-1, isV=ev>0.03, isT=ev<-0.08;
     const kelly = isV ? Math.max(0,(p*o-1)/(o-1))/4 : 0; // Kelly/4, prudente
+    const badgeCls = isV?"good":isT?"bad":"neutral";
+    const badgeLab = isV?"★ Valore":isT?"Quota bassa":"In linea";
     html+=`<div class="vgrid ${isV?"value":""}">
-      <div class="name" style="font-weight:${isV?800:400}">${lab}</div>
+      <div class="name" style="font-weight:${isV?700:400}">${lab}</div>
       <div>${o.toFixed(2)}</div><div>${(100/o).toFixed(1)}%</div><div>${(p*100).toFixed(1)}%</div>
       <div class="${ev>0?"ev-pos":"ev-neg"}">${ev>0?"+":""}${(ev*100).toFixed(1)}%</div>
-      <div class="verdict" style="color:${isV?"var(--ok)":isT?"var(--red)":"var(--dim)"}">${isV?`★ VALORE <span style="font-weight:400;color:var(--dim)">(Kelly/4: ${(kelly*100).toFixed(1)}%)</span>`:isT?"quota scarsa":"in linea"}</div>
+      <div><span class="badge ${badgeCls}">${badgeLab}</span>${isV?` <span style="color:var(--muted);font-size:11px">Kelly/4 ${(kelly*100).toFixed(1)}%</span>`:""}</div>
     </div>`;
   });
-  html+=`<div style="font-size:11px;color:var(--dim);margin-top:8px;line-height:1.5">
+  html+=`<div style="font-size:11px;color:var(--muted);margin-top:8px;line-height:1.5">
     <b>P. stimata</b> = probabilità fusa mercato+modello per l'1X2 (più affidabile del modello puro),
     modello puro per gli altri mercati. <b>EV</b> = p × quota − 1; ★ solo sopra +3%.
     <b>Kelly/4</b> = frazione di bankroll massima suggerita dalla teoria, già ridotta di 4 volte per
@@ -519,34 +574,16 @@ function renderValue(m,bl){
   $("valueTable").innerHTML=html;
 }
 
-function renderMultigoal(m){
-  // fasce standard sul totale gol della partita
-  const bands = [[0,1],[1,2],[2,3],[1,3],[2,4],[3,9]];
-  let html="";
-  bands.forEach(([lo,hi])=>{
-    const p = m.fullScores.filter(s=>s.a+s.b>=lo && s.a+s.b<=hi).reduce((s,x)=>s+x.p,0);
-    const label = hi===9 ? `Multigol ${lo}+` : `Multigol ${lo}-${hi}`;
-    html += `<div class="row"><span>${label}</span><code>${fmtP(p)} <i>(${odd(p)})</i></code></div>`;
-  });
-  $("multigoal").innerHTML = html;
-}
-
-function renderScoreGrid(m){
-  const MAXG=5;
-  let html = `<table style="border-collapse:collapse;font-size:12px;font-family:monospace;width:100%">
-    <tr><td></td>` + Array.from({length:MAXG+1},(_,b)=>`<td style="text-align:center;padding:3px;font-weight:700;color:var(--red)">${b}</td>`).join("") + `</tr>`;
-  for(let a=0;a<=MAXG;a++){
-    html += `<tr><td style="font-weight:700;color:var(--red);padding:3px">${a}</td>`;
-    for(let b=0;b<=MAXG;b++){
-      const cell = m.fullScores.find(s=>s.a===a&&s.b===b);
-      const p = cell ? cell.p : 0;
-      const isTop = m.scores[0] && m.scores[0].a===a && m.scores[0].b===b;
-      html += `<td style="text-align:center;padding:3px;border:1px solid var(--line);background:${isTop?"#F3FAF0":"#fff"};font-weight:${isTop?800:400}">${(p*100).toFixed(1)}</td>`;
-    }
-    html += `</tr>`;
-  }
-  html += `</table><div style="font-size:11px;color:var(--dim);margin-top:6px">Valori in % probabilità. Righe = gol ${S.A}, colonne = gol ${S.B}. Il resto (uno dei due oltre 5 gol) è residuale.</div>`;
-  $("scoreGrid").innerHTML = html;
+function renderTopScores(m){
+  const A=team(S.A), B=team(S.B);
+  const html = m.scores.map(s=>{
+    const title = `${S.A} ${s.a} - ${s.b} ${S.B}`;
+    return `<div class="row" title="${title}">
+      <span>${A.f} ${s.a}-${s.b} ${B.f}</span>
+      <code>${fmtP(s.p)} <i>(${odd(s.p)})</i></code>
+    </div>`;
+  }).join("");
+  $("topScores").innerHTML = html;
 }
 
 function renderScorers(m){
@@ -558,14 +595,14 @@ function renderScorers(m){
   $("scorersHint").style.display="none";
   const relevant = scorersData.filter(s => s.team===S.A || s.team===S.B);
   if(!relevant.length){
-    $("scorersTable").innerHTML = `<div style="font-size:13px;color:var(--dim);font-style:italic">Nessun marcatore registrato ancora per queste due squadre nel torneo.</div>`;
+    $("scorersTable").innerHTML = `<div style="font-size:13px;color:var(--muted);font-style:italic">Nessun marcatore registrato ancora per queste due squadre nel torneo.</div>`;
     return;
   }
   // gol attesi della squadra + quota di gol del giocatore sul totale dei gol della sua squadra nel torneo
   const teamGoals = {};
   scorersData.forEach(s=>{ teamGoals[s.team] = (teamGoals[s.team]||0) + s.goals; });
   const lambdaOf = t => t===S.A ? m.lA : m.lB;
-  let html = `<div class="vgrid hdr"><div>GIOCATORE</div><div>SQUADRA</div><div>GOL</div><div>ASSIST</div><div>P. SEGNA</div><div>QUOTA EQUA</div></div>`;
+  let html = `<div class="vgrid hdr"><div>Giocatore</div><div>Squadra</div><div>Gol</div><div>Assist</div><div>P. segna</div><div>Quota equa</div></div>`;
   relevant.sort((x,y)=>y.goals-x.goals).slice(0,12).forEach(s=>{
     const share = teamGoals[s.team] > 0 ? s.goals/teamGoals[s.team] : 0;
     const lambdaPlayer = lambdaOf(s.team) * share;
@@ -575,9 +612,9 @@ function renderScorers(m){
       <div>${s.goals}</div><div>${s.assists}</div>
       <div>${fmtP(pScore)}</div><div>${odd(pScore)}</div></div>`;
   });
-  html += `<div style="font-size:11px;color:var(--dim);margin-top:8px;line-height:1.5">
+  html += `<div style="font-size:11px;color:var(--muted);margin-top:8px;line-height:1.5">
     Stima: gol attesi della squadra × quota-parte dei gol del giocatore sul totale-torneo della sua
-    nazionale. È una stima grezza (non tiene conto di titolarità, inforturi, ruolo) — utile per farsi
+    nazionale. È una stima grezza (non tiene conto di titolarità, infortuni, ruolo) — utile per farsi
     un'idea, non un pronostico rifinito. I <b>cartellini</b> non sono disponibili nel piano gratuito
     dell'API: servirebbe un piano a pagamento di un provider sportivo per quel dato.</div>`;
   $("scorersTable").innerHTML = html;
@@ -588,7 +625,7 @@ function renderStats(){
   const done=predLog.filter(x=>x.result);
   const pend=predLog.filter(x=>!x.result);
   if(!predLog.length){
-    $("statsBox").innerHTML=`<span style="font-size:13px;color:var(--dim);font-style:italic">Nessun pronostico salvato ancora.</span>`;
+    $("statsBox").innerHTML=`<span style="font-size:13px;color:var(--muted);font-style:italic">Nessun pronostico salvato ancora.</span>`;
     $("logBox").innerHTML=""; return;
   }
   let stats="";
@@ -597,7 +634,7 @@ function renderStats(){
     const mktDone=done.filter(x=>x.result.mktBrier!=null);
     const mktAvg=mktDone.length?mktDone.reduce((s,x)=>s+x.result.mktBrier,0)/mktDone.length:null;
     stats+=`<span class="stat">Pronostici valutati<b>${done.length}</b></span>`;
-    stats+=`<span class="stat">Brier medio schedina<b style="color:${avg<0.5?"var(--ok)":"var(--ink)"}">${avg.toFixed(3)}</b></span>`;
+    stats+=`<span class="stat">Brier medio schedina<b style="color:${avg<0.5?"var(--accent-text)":"var(--ink)"}">${avg.toFixed(3)}</b></span>`;
     stats+=`<span class="stat">Riferimento "a caso"<b>0.667</b></span>`;
     if(mktAvg!=null) stats+=`<span class="stat">Brier medio mercato<b>${mktAvg.toFixed(3)}</b></span>`;
   }
@@ -605,7 +642,7 @@ function renderStats(){
   $("statsBox").innerHTML=stats;
   $("logBox").innerHTML=predLog.slice(-8).reverse().map(x=>{
     const pr=`[${x.p.map(p=>(p*100).toFixed(0)).join("/")}]`;
-    if(!x.result) return `<div class="logrow"><span>${x.A} – ${x.B} ${pr} (${x.src})</span><span style="color:var(--dim)">in attesa</span></div>`;
+    if(!x.result) return `<div class="logrow"><span>${x.A} – ${x.B} ${pr} (${x.src})</span><span style="color:var(--muted)">in attesa</span></div>`;
     const r=x.result, cls=r.brier<0.5?"g":"b";
     return `<div class="logrow"><span>${x.A} ${r.gA} – ${r.gB} ${x.B} ${pr}</span><span class="${cls}">Brier ${r.brier.toFixed(3)}${r.mktBrier!=null?` · mkt ${r.mktBrier.toFixed(3)}`:""}</span></div>`;
   }).join("");
