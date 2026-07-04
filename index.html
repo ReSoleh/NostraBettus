@@ -81,12 +81,8 @@
   .row code { font-variant-numeric:tabular-nums; }
   .row code i { color:var(--muted); font-style:normal; }
 
-  /* heatmap combo */
-  .scoregrid-wrap { overflow-x:auto; }
-  table.heatmap { border-collapse:separate; border-spacing:3px; font-size:12.5px; width:100%; }
-  table.heatmap th { font-weight:600; color:var(--muted); padding:6px; text-align:center; font-size:11px; }
-  table.heatmap td { text-align:center; padding:10px 4px; border-radius:6px; font-variant-numeric:tabular-nums; font-weight:500; }
-  table.heatmap td.top { box-shadow:inset 0 0 0 2px var(--ink); font-weight:700; }
+  .row.top { background:var(--accent-soft); border-radius:6px; padding:8px 10px; border-bottom:none; }
+  .row.top span, .row.top code { color:var(--accent-text); font-weight:700; }
 
   /* accordion sections */
   details.box { border:1px solid var(--line); border-radius:10px; overflow:hidden; margin-bottom:16px; background:var(--surface); }
@@ -448,17 +444,6 @@ function blended(m){
 // Brier multi-classe su 1X2
 const brier = (p,outIdx) => p.reduce((s,pi,i)=>s+Math.pow(pi-(i===outIdx?1:0),2),0);
 
-// ================= heatmap colore (per le scommesse combinate) =================
-const HEAT_STOPS = ["#E3F3EF","#C3E6DD","#9AD5C6","#6BC0AC","#3FA890","#1F8F76","#146B58"];
-const hexToRgb = h => { h=h.replace("#",""); return [0,2,4].map(i=>parseInt(h.slice(i,i+2),16)); };
-const rgbToHex = ([r,g,b]) => "#"+[r,g,b].map(v=>Math.round(v).toString(16).padStart(2,"0")).join("");
-function heatColor(t){
-  t=Math.max(0,Math.min(1,t));
-  const n=HEAT_STOPS.length-1, pos=t*n, i=Math.min(n-1,Math.floor(pos)), f=pos-i;
-  const c0=hexToRgb(HEAT_STOPS[i]), c1=hexToRgb(HEAT_STOPS[i+1]);
-  return rgbToHex(c0.map((v,k)=>v+(c1[k]-v)*f));
-}
-
 // ================= rendering =================
 const $ = id => document.getElementById(id);
 const fmtP = p => (p*100).toFixed(1)+"%";
@@ -635,28 +620,18 @@ function renderCombos(m){
     { label:"Over 2.5", test:(a,b)=>a+b>2.5 },
     { label:"Under 2.5", test:(a,b)=>a+b<=2.5 },
   ];
-  const cells = rows.map(r=>cols.map(c=>
-    m.fullScores.filter(s=>r.test(s.a,s.b)&&c.test(s.a,s.b)).reduce((s,x)=>s+x.p,0)
-  ));
-  const maxP = Math.max(...cells.flat());
-  let bestR=0, bestC=0;
-  cells.forEach((row,ri)=>row.forEach((p,ci)=>{ if(p>cells[bestR][bestC]){bestR=ri;bestC=ci;} }));
+  const combos = [];
+  rows.forEach(r=>cols.forEach(c=>{
+    const p = m.fullScores.filter(s=>r.test(s.a,s.b)&&c.test(s.a,s.b)).reduce((s,x)=>s+x.p,0);
+    combos.push({ label:`${r.label} + ${c.label}`, p });
+  }));
+  combos.sort((a,b)=>b.p-a.p);
 
-  let html = `<div class="scoregrid-wrap"><table class="heatmap"><thead><tr><th></th>`
-    + cols.map(c=>`<th>${c.label}</th>`).join("") + `</tr></thead><tbody>`;
-  rows.forEach((r,ri)=>{
-    html += `<tr><th style="text-align:right;white-space:nowrap">${r.label}</th>`;
-    cols.forEach((c,ci)=>{
-      const p = cells[ri][ci];
-      const t = maxP>0 ? p/maxP : 0;
-      const isTop = ri===bestR && ci===bestC;
-      const textColor = t>0.55 ? "#FFFFFF" : "var(--ink)";
-      html += `<td class="${isTop?"top":""}" style="background:${heatColor(t)};color:${textColor}" title="${r.label} + ${c.label}: ${(p*100).toFixed(1)}% · quota equa ${odd(p)}">${(p*100).toFixed(1)}</td>`;
-    });
-    html += `</tr>`;
-  });
-  html += `</tbody></table></div><div class="hint" style="margin:10px 0 0">Probabilità della multipla "esito + mercato gol", calcolata direttamente dalla distribuzione dei punteggi del modello (coglie la correlazione reale: es. un 2-1 conta sia per "1" che per "Gol" che per "Over 2.5"). Il riquadro cerchiato è la combo più probabile. Basato sul modello puro, non sulla fusione con le quote — utile per farsi un'idea, non un consiglio di scommessa.</div>`;
-  $("combos").innerHTML = html;
+  const html = combos.map((c,i)=>`<div class="row${i===0?" top":""}">
+      <span>${c.label}${i===0?" ★":""}</span>
+      <code>${fmtP(c.p)} <i>(${odd(c.p)})</i></code>
+    </div>`).join("");
+  $("combos").innerHTML = html + `<div class="hint" style="margin:10px 0 0">Combinazioni "esito + mercato gol" ordinate per probabilità, calcolate direttamente dalla distribuzione dei punteggi del modello (coglie la correlazione reale: es. un 2-1 conta sia per "1" che per "Gol" che per "Over 2.5"). Basato sul modello puro, non sulla fusione con le quote — utile per farsi un'idea, non un consiglio di scommessa.</div>`;
 }
 
 function renderScorers(m){
