@@ -1,0 +1,664 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>La Schedina · Mondiale 2026</title>
+<style>
+  :root { --ink:#1B2A4A; --red:#C8102E; --paper:#FBF8EF; --line:#D9D2BC; --dim:#8A8168; --ok:#2E7D32; --gold:#F0C040; }
+  * { box-sizing:border-box; }
+  body { margin:0; background:#E8E2D0; font-family:Georgia,'Times New Roman',serif; color:var(--ink); padding:24px 12px; }
+  .card { max-width:780px; margin:0 auto; background:var(--paper); border:2px solid var(--ink); border-radius:6px; box-shadow:4px 4px 0 rgba(27,42,74,.25); overflow:hidden; }
+  .head { background:var(--ink); color:var(--paper); padding:14px 20px; display:flex; justify-content:space-between; align-items:baseline; flex-wrap:wrap; gap:8px; }
+  .head h1 { margin:0; font-size:22px; letter-spacing:1px; }
+  .head h1 span { color:var(--gold); }
+  .head small { opacity:.75; font-size:12px; }
+  .body { padding:20px; }
+  .eyebrow { font-size:11px; letter-spacing:2px; color:var(--red); font-weight:700; margin:0 0 6px; }
+  .fixtures { display:flex; flex-wrap:wrap; gap:6px; margin-bottom:16px; }
+  .fx { font-size:12px; padding:6px 10px; border-radius:4px; cursor:pointer; border:1.5px solid var(--line); background:#fff; color:var(--ink); font-weight:600; font-family:inherit; }
+  .fx.on { background:var(--red); border-color:var(--red); color:#fff; }
+  .fx em { opacity:.65; font-weight:400; font-style:normal; }
+  .pickers { display:flex; gap:16px; flex-wrap:wrap; margin-bottom:16px; }
+  .picker { flex:1; min-width:230px; }
+  select { width:100%; padding:10px 8px; font-size:16px; font-weight:600; background:#fff; color:var(--ink); border:2px solid var(--ink); border-radius:4px; font-family:inherit; }
+  .elorow { display:flex; align-items:center; gap:8px; margin-top:6px; }
+  .elorow label { font-size:12px; color:#6B6350; }
+  .elorow input { width:90px; padding:4px 6px; font-family:monospace; font-size:14px; border:1px solid var(--line); border-radius:4px; background:#fff; color:var(--ink); }
+  .homebtn { font-size:11px; padding:4px 8px; border-radius:4px; cursor:pointer; border:1px solid var(--line); background:#fff; color:#6B6350; font-weight:700; font-family:inherit; }
+  .homebtn.on { background:var(--red); border-color:var(--red); color:#fff; }
+  .modes { display:flex; gap:8px; margin-bottom:20px; }
+  .modes button { flex:1; padding:8px 0; font-size:13px; font-weight:700; cursor:pointer; border:2px solid var(--ink); border-radius:4px; background:#fff; color:var(--ink); font-family:inherit; }
+  .modes button.on { background:var(--ink); color:var(--paper); }
+  .matchcard { text-align:center; padding:10px 0 16px; border-top:1px dashed var(--line); border-bottom:1px dashed var(--line); margin-bottom:18px; }
+  .matchcard .big { font-size:26px; font-weight:800; }
+  .matchcard .big i { color:var(--red); font-size:18px; font-style:normal; }
+  .matchcard .sub { font-family:monospace; font-size:13px; color:#6B6350; margin-top:4px; }
+  .bar { margin-bottom:10px; }
+  .bar .top { display:flex; justify-content:space-between; font-size:13px; margin-bottom:3px; flex-wrap:wrap; gap:2px; }
+  .bar .top b.hl { color:var(--red); }
+  .bar .top code { color:var(--ink); } .bar .top code i { color:var(--dim); font-style:normal; }
+  .track { height:14px; background:#EFE9D8; border-radius:2px; overflow:hidden; position:relative; }
+  .fill { height:100%; background:var(--ink); transition:width .4s ease; }
+  .fill.hl { background:var(--red); }
+  .unc { position:absolute; top:0; height:100%; background:rgba(27,42,74,.18); }
+  .qual { background:#fff; border:2px solid var(--red); border-radius:4px; padding:10px 14px; margin:16px 0; display:flex; justify-content:space-between; flex-wrap:wrap; gap:6px; }
+  .qual b { color:var(--red); font-size:14px; } .qual code { font-size:14px; }
+  .cols { display:flex; gap:16px; flex-wrap:wrap; margin-top:18px; }
+  .col { flex:1; min-width:230px; }
+  .row { display:flex; justify-content:space-between; font-size:14px; padding:5px 0; border-bottom:1px dotted var(--line); }
+  .row code i { color:var(--dim); font-style:normal; }
+  .box { margin-top:20px; border:2px solid var(--ink); border-radius:4px; overflow:hidden; }
+  .box .bhead { background:var(--ink); color:var(--paper); padding:8px 14px; font-size:13px; font-weight:800; letter-spacing:2px; }
+  .box .bbody { padding:14px; background:#fff; }
+  .hint { font-size:13px; color:#6B6350; margin-bottom:10px; }
+  .oddsgrid { display:grid; grid-template-columns:repeat(auto-fit,minmax(88px,1fr)); gap:8px; margin-bottom:14px; }
+  .oddsgrid .lab { font-size:10px; letter-spacing:1px; color:var(--red); font-weight:700; margin-bottom:2px; }
+  .oddsgrid input { width:100%; padding:6px; font-family:monospace; font-size:14px; border:1px solid var(--line); border-radius:4px; color:var(--ink); background:var(--paper); }
+  .blend { display:flex; align-items:center; gap:10px; margin-bottom:12px; flex-wrap:wrap; font-size:12px; color:#6B6350; }
+  .blend input[type=range]{ flex:1; min-width:120px; accent-color:var(--red); }
+  .vgrid { display:grid; grid-template-columns:1.9fr 1fr 1fr 1fr 1fr 1.3fr; gap:4px; font-size:13px; font-family:monospace; padding:6px 0; border-bottom:1px dotted var(--line); }
+  .vgrid.hdr { font-size:10px; letter-spacing:1px; color:var(--dim); font-weight:700; border-bottom:2px solid var(--ink); font-family:inherit; }
+  .vgrid.value { background:#F3FAF0; }
+  .vgrid .name { font-family:Georgia,serif; }
+  .ev-pos { color:var(--ok); font-weight:700; } .ev-neg { color:var(--red); font-weight:700; }
+  .verdict { font-family:Georgia,serif; font-size:12px; font-weight:700; }
+  .note { margin-top:20px; font-size:12px; color:var(--dim); line-height:1.5; border-top:1px dashed var(--line); padding-top:12px; }
+  .result-form { display:flex; gap:8px; align-items:center; flex-wrap:wrap; margin-top:8px; }
+  .result-form input { width:52px; padding:6px; font-family:monospace; font-size:15px; text-align:center; border:1px solid var(--line); border-radius:4px; background:var(--paper); }
+  .btn { padding:7px 14px; font-size:13px; font-weight:700; border:2px solid var(--ink); background:var(--ink); color:var(--paper); border-radius:4px; cursor:pointer; font-family:inherit; }
+  .btn.ghost { background:#fff; color:var(--ink); }
+  .flash { font-size:12px; color:var(--ok); font-weight:700; }
+  .stat { display:inline-block; background:var(--paper); border:1px solid var(--line); border-radius:4px; padding:6px 12px; margin:0 8px 8px 0; font-size:13px; }
+  .stat b { font-family:monospace; font-size:16px; display:block; }
+  .logrow { font-size:12px; font-family:monospace; padding:5px 0; border-bottom:1px dotted var(--line); display:flex; justify-content:space-between; flex-wrap:wrap; gap:4px; }
+  .logrow .g { color:var(--ok); font-weight:700; } .logrow .b { color:var(--red); font-weight:700; }
+  @media (max-width:540px){ .vgrid{ grid-template-columns:1.5fr 1fr 1fr 1fr 1fr 1.1fr; font-size:11px; } .matchcard .big{ font-size:20px; } }
+</style>
+</head>
+<body>
+<div class="card">
+  <div class="head">
+    <div>
+      <h1>LA SCHEDINA <span>· MONDIALE 2026</span></h1>
+      <small>Elo dinamico + Poisson/Dixon-Coles + fusione mercato + verifica Brier</small>
+    </div>
+    <small style="font-family:monospace">USA · CAN · MEX</small>
+  </div>
+  <div class="body">
+    <div class="box" style="margin-bottom:16px">
+      <div class="bhead">DATI LIVE — FOOTBALL-DATA.ORG</div>
+      <div class="bbody">
+        <div class="hint">Incolla qui la tua chiave API gratuita (2 minuti su
+        <b>football-data.org</b> → Register → arriva via email, nessuna carta richiesta).
+        Con la chiave: partite, risultati ed Elo si aggiornano da soli, più marcatori/assist reali.
+        Senza chiave, il tool funziona lo stesso ma con inserimento manuale.</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+          <input id="apiKey" type="text" placeholder="La tua X-Auth-Token qui" style="flex:1;min-width:220px;padding:8px;font-family:monospace;font-size:13px;border:1px solid var(--line);border-radius:4px">
+          <button class="btn" id="saveKey">Salva e collega</button>
+          <button class="btn ghost" id="refreshNow">🔄 Aggiorna ora</button>
+        </div>
+        <div id="apiStatus" style="font-size:12px;margin-top:8px;color:var(--dim)"></div>
+      </div>
+    </div>
+
+    <p class="eyebrow">PARTITE IN PROGRAMMA — CLICCA PER CARICARE</p>
+    <div class="fixtures" id="fixtures"></div>
+
+    <div class="pickers">
+      <div class="picker">
+        <p class="eyebrow">SQUADRA 1</p>
+        <select id="selA"></select>
+        <div class="elorow"><label>Rating Elo</label><input type="number" id="eloA"><button class="homebtn" id="homeA">in casa?</button></div>
+      </div>
+      <div class="picker">
+        <p class="eyebrow">SQUADRA 2</p>
+        <select id="selB"></select>
+        <div class="elorow"><label>Rating Elo</label><input type="number" id="eloB"><button class="homebtn" id="homeB">in casa?</button></div>
+      </div>
+    </div>
+
+    <div class="modes">
+      <button id="modeG">Gironi</button>
+      <button id="modeK" class="on">Eliminazione diretta</button>
+    </div>
+
+    <div class="matchcard">
+      <div class="big" id="matchTitle"></div>
+      <div class="sub" id="matchSub"></div>
+      <div class="sub" id="uncSub" style="color:var(--dim)"></div>
+    </div>
+
+    <div id="bars"></div>
+    <div class="qual" id="qualBox" style="display:none"></div>
+
+    <div class="cols">
+      <div class="col"><p class="eyebrow">ALTRI MERCATI</p><div id="markets"></div></div>
+      <div class="col"><p class="eyebrow">MULTIGOL (totale gol partita)</p><div id="multigoal"></div></div>
+    </div>
+
+    <div style="margin-top:16px">
+      <p class="eyebrow">RISULTATI FISSI — GRIGLIA COMPLETA</p>
+      <div id="scoreGrid"></div>
+    </div>
+
+    <div class="box" style="margin-top:20px">
+      <div class="bhead">MARCATORI E ASSIST (dati reali dalla competizione, se chiave attiva)</div>
+      <div class="bbody">
+        <div class="hint" id="scorersHint">Attiva la chiave API sopra per vedere marcatori/assist reali del torneo con probabilità stimata per questa partita.</div>
+        <div id="scorersTable"></div>
+      </div>
+    </div>
+
+    <div class="box">
+      <div class="bhead">QUOTE DEL BOOKMAKER → FUSIONE E CACCIA AL VALORE</div>
+      <div class="bbody">
+        <div class="hint">Inserisci le quote (es. 2.10). Con la terna 1X2 completa, il modello si <b>fonde</b>
+        con le probabilità del mercato (senza margine): il mercato sa cose che l'Elo non vede.</div>
+        <div class="oddsgrid" id="oddsInputs"></div>
+        <div class="blend" id="blendRow" style="display:none">
+          <span>Peso al mercato:</span>
+          <input type="range" id="blendW" min="0" max="100" value="65">
+          <code id="blendLab" style="color:var(--ink)">65% mercato · 35% modello</code>
+        </div>
+        <div id="marginInfo" style="font-size:12px;font-family:monospace;color:#6B6350;margin-bottom:10px"></div>
+        <div id="valueTable"></div>
+      </div>
+    </div>
+
+    <div class="box">
+      <div class="bhead">VERIFICA DEL MODELLO — PRONOSTICI E BRIER SCORE</div>
+      <div class="bbody">
+        <div class="hint">Prima della partita salva il pronostico; dopo, registra il risultato: il rating Elo
+        si aggiorna e il pronostico viene valutato col <b>Brier score</b> (0 = perfetto, 0.667 = tirare a caso
+        tra 1/X/2, 2 = massimo errore). Dopo 15–20 partite saprai quanto fidarti della schedina.</div>
+        <div style="margin-bottom:10px">
+          <button class="btn ghost" id="savePred">📌 Salva pronostico per questa partita</button>
+          <span class="flash" id="flashPred"></span>
+        </div>
+        <div class="result-form">
+          <span id="resNameA" style="font-weight:700"></span>
+          <input type="number" min="0" id="golA" value="0"><span>–</span><input type="number" min="0" id="golB" value="0">
+          <span id="resNameB" style="font-weight:700"></span>
+          <button class="btn" id="saveResult">Registra risultato</button>
+          <span class="flash" id="flash"></span>
+        </div>
+        <div id="statsBox" style="margin-top:14px"></div>
+        <div id="logBox" style="margin-top:6px"></div>
+        <div style="margin-top:10px">
+          <button class="homebtn" id="resetElo">ripristina rating originali</button>
+          <button class="homebtn" id="resetLog">svuota registro pronostici</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="note">
+      <b>Il modello in breve:</b> differenza Elo → probabilità di vittoria attesa e gol attesi (totale 2.55
+      nei gironi, 2.35 a eliminazione diretta, dove si segna meno) → matrice di Poisson con correzione
+      Dixon-Coles per i punteggi bassi. Se inserisci le quote 1X2, le probabilità de-vigorate del mercato
+      vengono fuse col modello (peso regolabile) e la caccia al valore usa la stima fusa, più prudente.
+      La fascia grigia sulle barre è l'incertezza (±40 punti Elo). I rating si aggiornano registrando i
+      risultati (formula eloratings.net, K=60). Tutto resta salvato sul tuo dispositivo. Strumento
+      statistico a scopo informativo: nessun modello prevede il futuro.
+    </div>
+  </div>
+</div>
+
+<script>
+// ================= dati =================
+const BASE_TEAMS = [
+  {n:"Argentina",e:2148,f:"🇦🇷",c:"In gara oggi (32esimi)"},
+  {n:"Spagna",e:2144,f:"🇪🇸",c:"Agli ottavi"},
+  {n:"Francia",e:2134,f:"🇫🇷",c:"Agli ottavi"},
+  {n:"Inghilterra",e:2046,f:"🏴󠁧󠁢󠁥󠁮󠁧󠁿",c:"Agli ottavi"},
+  {n:"Brasile",e:2031,f:"🇧🇷",c:"Agli ottavi"},
+  {n:"Colombia",e:2004,f:"🇨🇴",c:"In gara oggi (32esimi)"},
+  {n:"Portogallo",e:1990,f:"🇵🇹",c:"Agli ottavi"},
+  {n:"Marocco",e:1945,f:"🇲🇦",c:"Agli ottavi"},
+  {n:"Messico",e:1890,f:"🇲🇽",c:"Agli ottavi"},
+  {n:"Belgio",e:1875,f:"🇧🇪",c:"Agli ottavi"},
+  {n:"Svizzera",e:1870,f:"🇨🇭",c:"Agli ottavi"},
+  {n:"Norvegia",e:1865,f:"🇳🇴",c:"Agli ottavi"},
+  {n:"Stati Uniti",e:1850,f:"🇺🇸",c:"Agli ottavi"},
+  {n:"Canada",e:1810,f:"🇨🇦",c:"Agli ottavi"},
+  {n:"Paraguay",e:1795,f:"🇵🇾",c:"Agli ottavi"},
+  {n:"Egitto",e:1800,f:"🇪🇬",c:"In gara oggi (32esimi)"},
+  {n:"Australia",e:1760,f:"🇦🇺",c:"In gara oggi (32esimi)"},
+  {n:"Ghana",e:1730,f:"🇬🇭",c:"In gara oggi (32esimi)"},
+  {n:"Capo Verde",e:1660,f:"🇨🇻",c:"In gara oggi (32esimi)"},
+];
+const GROUPS = ["Agli ottavi","In gara oggi (32esimi)"];
+const FIXTURES = [
+  {a:"Australia",b:"Egitto",lab:"32esimi · oggi"},
+  {a:"Argentina",b:"Capo Verde",lab:"32esimi · oggi"},
+  {a:"Colombia",b:"Ghana",lab:"32esimi · oggi"},
+  {a:"Canada",b:"Marocco",lab:"Ottavi · sab 4"},
+  {a:"Paraguay",b:"Francia",lab:"Ottavi · sab 4"},
+  {a:"Brasile",b:"Norvegia",lab:"Ottavi · dom 5"},
+  {a:"Messico",b:"Inghilterra",lab:"Ottavi · dom 5"},
+  {a:"Portogallo",b:"Spagna",lab:"Ottavi · lun 6"},
+  {a:"Belgio",b:"Stati Uniti",lab:"Ottavi · lun 6"},
+];
+
+// mapping nomi inglesi (football-data.org) -> nostri nomi italiani
+const NAME_MAP = {
+  "Argentina":"Argentina","Spain":"Spagna","France":"Francia","England":"Inghilterra",
+  "Brazil":"Brasile","Colombia":"Colombia","Portugal":"Portogallo","Morocco":"Marocco",
+  "Mexico":"Messico","Belgium":"Belgio","Switzerland":"Svizzera","Norway":"Norvegia",
+  "United States":"Stati Uniti","USA":"Stati Uniti","Canada":"Canada","Paraguay":"Paraguay",
+  "Egypt":"Egitto","Australia":"Australia","Ghana":"Ghana","Cape Verde":"Capo Verde",
+  "Cabo Verde":"Capo Verde",
+};
+const toIT = enName => NAME_MAP[enName] || enName;
+
+// storage persistente (con fallback in memoria)
+const load = (k,d) => { try { return JSON.parse(localStorage.getItem(k)) ?? d; } catch(e){ return d; } };
+const save = (k,v) => { try { localStorage.setItem(k, JSON.stringify(v)); } catch(e){} };
+let eloStore = load("schedina_elo", {});
+let predLog  = load("schedina_log", []);   // {date, A, B, p:[p1,px,p2], src, mkt:[..]|null, result:null|{gA,gB,brier,mktBrier}}
+const getElo = n => eloStore[n] ?? BASE_TEAMS.find(t=>t.n===n).e;
+const team   = n => BASE_TEAMS.find(t=>t.n===n);
+
+let processed = load("schedina_processed", []); // ID partite già usate per aggiornare Elo
+let apiKey = load("schedina_apikey", "");
+let liveFixtures = null; // popolato da fetch API, se disponibile
+let scorersData = null;
+
+// ================= stato =================
+let S = { A:"Argentina", B:"Capo Verde", home:"N", knockout:true, blendW:0.65,
+          odds:{o1:"",ox:"",o2:"",over:"",under:"",gg:"",ng:""} };
+
+// ================= modello =================
+const fact = n => n<=1?1:n*fact(n-1);
+const pois = (k,l) => Math.exp(-l)*Math.pow(l,k)/fact(k);
+const RHO = -0.11; // Dixon-Coles
+const dcTau = (a,b,lA,lB) =>
+  a===0&&b===0 ? 1-lA*lB*RHO : a===0&&b===1 ? 1+lA*RHO :
+  a===1&&b===0 ? 1+lB*RHO   : a===1&&b===1 ? 1-RHO : 1;
+
+function model(eloA, eloB, home, knockout){
+  const HFA = 70;
+  const effA = eloA + (home==="A"?HFA:0);
+  const effB = eloB + (home==="B"?HFA:0);
+  const diff = effA - effB;
+  const we = 1/(1+Math.pow(10,-diff/400));
+  const total = knockout ? 2.35 : 2.55;  // a eliminazione diretta si segna meno
+  const margin = Math.max(-2.2, Math.min(2.2, diff/165));
+  const lA = Math.max(0.2,(total+margin)/2);
+  const lB = Math.max(0.2,(total-margin)/2);
+  let pW=0,pD=0,pL=0,pOver=0,pGG=0,scores=[],tot=0;
+  for(let a=0;a<9;a++)for(let b=0;b<9;b++){
+    const p = pois(a,lA)*pois(b,lB)*dcTau(a,b,lA,lB);
+    tot+=p;
+    if(a>b)pW+=p; else if(a===b)pD+=p; else pL+=p;
+    if(a+b>2.5)pOver+=p;
+    if(a>0&&b>0)pGG+=p;
+    scores.push({a,b,p});
+  }
+  pW/=tot;pD/=tot;pL/=tot;pOver/=tot;pGG/=tot;
+  scores.forEach(s=>s.p/=tot);
+  scores.sort((x,y)=>y.p-x.p);
+  const etSplit = 0.5 + (we-0.5)*0.6;
+  return {we,lA,lB,pW,pD,pL,pOver,pGG,scores:scores.slice(0,5),fullScores:scores,qualA:pW+pD*etSplit,diff};
+}
+
+// aggiornamento Elo (formula eloratings.net, K=60 Mondiale)
+function updateElo(nA,nB,gA,gB,home){
+  const eA=getElo(nA), eB=getElo(nB);
+  const dr=(eA+(home==="A"?70:0))-(eB+(home==="B"?70:0));
+  const we=1/(1+Math.pow(10,-dr/400));
+  const res=gA>gB?1:gA===gB?0.5:0;
+  const gd=Math.abs(gA-gB);
+  const G=gd<2?1:gd===2?1.5:(11+gd)/8;
+  const delta=Math.round(60*G*(res-we));
+  eloStore[nA]=eA+delta; eloStore[nB]=eB-delta; save("schedina_elo",eloStore);
+  return delta;
+}
+
+// ================= dati live (football-data.org) =================
+async function fetchLive(){
+  if(!apiKey){ $("apiStatus").innerHTML = `<span style="color:var(--dim)">Nessuna chiave inserita — modalità manuale.</span>`; return; }
+  $("apiStatus").innerHTML = `<span style="color:var(--dim)">Aggiornamento in corso…</span>`;
+  try{
+    const [mRes, sRes] = await Promise.all([
+      fetch("https://api.football-data.org/v4/competitions/WC/matches", { headers:{ "X-Auth-Token": apiKey } }),
+      fetch("https://api.football-data.org/v4/competitions/WC/scorers?limit=50", { headers:{ "X-Auth-Token": apiKey } }),
+    ]);
+    if(!mRes.ok) throw new Error("Chiave non valida o limite richieste superato (10/min sul piano free).");
+    const mData = await mRes.json();
+    liveFixtures = mData.matches
+      .filter(m => NAME_MAP[m.homeTeam?.name] && NAME_MAP[m.awayTeam?.name])
+      .map(m => ({
+        id: m.id, a: toIT(m.homeTeam.name), b: toIT(m.awayTeam.name),
+        status: m.status, stage: m.stage,
+        golA: m.score.fullTime.home, golB: m.score.fullTime.away,
+        date: m.utcDate,
+      }));
+    if(sRes.ok){
+      const sData = await sRes.json();
+      scorersData = sData.scorers
+        .filter(s => NAME_MAP[s.team?.name])
+        .map(s => ({ name:s.player.name, team:toIT(s.team.name), goals:s.goals||0, assists:s.assists||0 }));
+    }
+    $("apiStatus").innerHTML = `<span style="color:var(--ok)">✓ Aggiornato ${new Date().toLocaleTimeString("it-IT")} · ${liveFixtures.length} partite tra le squadre in gara</span>`;
+    autoProcessResults();
+    render();
+  }catch(err){
+    $("apiStatus").innerHTML = `<span style="color:var(--red)">Errore: ${err.message}</span>`;
+  }
+}
+
+// aggiorna Elo automaticamente per partite finite non ancora processate
+function autoProcessResults(){
+  if(!liveFixtures) return;
+  liveFixtures.filter(m => m.status==="FINISHED" && !processed.includes(m.id)).forEach(m=>{
+    const d = updateElo(m.a, m.b, m.golA, m.golB, "N");
+    const pending = predLog.find(x=>!x.result && x.A===m.a && x.B===m.b);
+    if(pending){
+      const outIdx = m.golA>m.golB?0:m.golA===m.golB?1:2;
+      pending.result = { gA:m.golA, gB:m.golB, brier:brier(pending.p,outIdx), mktBrier: pending.mkt?brier(pending.mkt,outIdx):null };
+    }
+    processed.push(m.id);
+  });
+  save("schedina_processed", processed);
+  save("schedina_log", predLog);
+}
+
+
+const num = s => { const v=parseFloat(String(s).replace(",",".")); return isFinite(v)&&v>1?v:null; };
+function marketProbs(){
+  const o1=num(S.odds.o1),ox=num(S.odds.ox),o2=num(S.odds.o2);
+  if(!(o1&&ox&&o2)) return null;
+  const s=1/o1+1/ox+1/o2;
+  return { p:[1/o1/s,1/ox/s,1/o2/s], margin:s-1, odds:[o1,ox,o2] };
+}
+function blended(m){
+  const mkt=marketProbs();
+  if(!mkt) return { p:[m.pW,m.pD,m.pL], src:"modello", mkt:null };
+  const w=S.blendW;
+  const p=[0,1,2].map(i=>w*mkt.p[i]+(1-w)*[m.pW,m.pD,m.pL][i]);
+  const t=p[0]+p[1]+p[2];
+  return { p:p.map(x=>x/t), src:"fusione", mkt };
+}
+
+// Brier multi-classe su 1X2
+const brier = (p,outIdx) => p.reduce((s,pi,i)=>s+Math.pow(pi-(i===outIdx?1:0),2),0);
+
+// ================= rendering =================
+const $ = id => document.getElementById(id);
+const fmtP = p => (p*100).toFixed(1)+"%";
+const odd = p => p>0.001?(1/p).toFixed(2):"—";
+
+function buildSelects(){
+  [["selA","A"],["selB","B"]].forEach(([id,key])=>{
+    const sel=$(id); sel.innerHTML="";
+    GROUPS.forEach(g=>{
+      const og=document.createElement("optgroup"); og.label=g;
+      BASE_TEAMS.filter(t=>t.c===g).sort((x,y)=>getElo(y.n)-getElo(x.n)).forEach(t=>{
+        const o=document.createElement("option"); o.value=t.n; o.textContent=t.f+" "+t.n; og.appendChild(o);
+      });
+      sel.appendChild(og);
+    });
+    sel.value=S[key];
+    sel.onchange=()=>{S[key]=sel.value; render();};
+  });
+}
+function buildOddsInputs(){
+  const defs=[["o1","QUOTA 1"],["ox","QUOTA X"],["o2","QUOTA 2"],["over","OVER 2.5"],["under","UNDER 2.5"],["gg","GOL"],["ng","NO GOL"]];
+  $("oddsInputs").innerHTML = defs.map(([k,l])=>
+    `<div><div class="lab">${l}</div><input inputmode="decimal" placeholder="—" data-odd="${k}" value="${S.odds[k]}"></div>`).join("");
+  document.querySelectorAll("[data-odd]").forEach(inp=>{
+    inp.oninput=()=>{S.odds[inp.dataset.odd]=inp.value; render();};
+  });
+}
+function buildFixtures(){
+  $("fixtures").innerHTML="";
+  const list = liveFixtures && liveFixtures.length ? liveFixtures : FIXTURES.map(fx=>({a:fx.a,b:fx.b,lab:fx.lab,status:null}));
+  list.forEach(fx=>{
+    const b=document.createElement("button");
+    b.className="fx"+(S.A===fx.a&&S.B===fx.b?" on":"");
+    let tag = fx.lab || fx.stage || "";
+    if(fx.status==="IN_PLAY"||fx.status==="PAUSED") tag = `🔴 IN CORSO ${fx.golA}-${fx.golB}`;
+    else if(fx.status==="FINISHED") tag = `Finale ${fx.golA}-${fx.golB}`;
+    else if(fx.status==="SCHEDULED"||fx.status==="TIMED") tag = new Date(fx.date).toLocaleString("it-IT",{weekday:"short",hour:"2-digit",minute:"2-digit"});
+    b.innerHTML=`${team(fx.a).f} ${fx.a} – ${fx.b} ${team(fx.b).f} <em>· ${tag}</em>`;
+    b.onclick=()=>{S.A=fx.a;S.B=fx.b;S.home="N";$("selA").value=fx.a;$("selB").value=fx.b;render();};
+    $("fixtures").appendChild(b);
+  });
+}
+
+function render(){
+  buildFixtures();
+  const eloA=getElo(S.A), eloB=getElo(S.B);
+  $("eloA").value=eloA; $("eloB").value=eloB;
+  $("homeA").className="homebtn"+(S.home==="A"?" on":"");
+  $("homeA").textContent=S.home==="A"?"GIOCA IN CASA ✓":"in casa?";
+  $("homeB").className="homebtn"+(S.home==="B"?" on":"");
+  $("homeB").textContent=S.home==="B"?"GIOCA IN CASA ✓":"in casa?";
+  $("modeG").className=S.knockout?"":"on"; $("modeK").className=S.knockout?"on":"";
+
+  const m  = model(eloA,eloB,S.home,S.knockout);
+  const hi = model(eloA+40,eloB-40,S.home,S.knockout); // incertezza ±40 Elo
+  const lo = model(eloA-40,eloB+40,S.home,S.knockout);
+  const bl = blended(m);
+  const A=team(S.A),B=team(S.B);
+
+  $("matchTitle").innerHTML=`${A.f} ${S.A} <i>vs</i> ${S.B} ${B.f}`;
+  $("matchSub").textContent=`Elo ${eloA} vs ${eloB} · Δ ${m.diff>=0?"+":""}${m.diff}`
+    +(S.home!=="N"?" · fattore campo attivo":" · campo neutro")
+    +` · gol attesi ${m.lA.toFixed(2)} – ${m.lB.toFixed(2)}`;
+  $("uncSub").textContent = bl.mkt
+    ? `stima fusa (${Math.round(S.blendW*100)}% mercato): 1 → ${fmtP(bl.p[0])} · X → ${fmtP(bl.p[1])} · 2 → ${fmtP(bl.p[2])}`
+    : `incertezza modello (±40 Elo): vittoria ${S.A} tra ${fmtP(lo.pW)} e ${fmtP(hi.pW)}`;
+
+  const probs=[m.pW,m.pD,m.pL];
+  const rng=[[lo.pW,hi.pW],[Math.min(lo.pD,hi.pD),Math.max(lo.pD,hi.pD)],[hi.pL,lo.pL]];
+  const best=probs.indexOf(Math.max(...probs));
+  const labs=[`1 — vince ${S.A}`,"X — pareggio (nei 90')",`2 — vince ${S.B}`];
+  $("bars").innerHTML=labs.map((lab,i)=>{
+    const p=probs[i], [pl,ph]=rng[i];
+    const bland = bl.mkt ? ` <i>· fusa ${fmtP(bl.p[i])}</i>` : "";
+    return `<div class="bar">
+      <div class="top"><b class="${i===best?"hl":""}">${lab}${i===best?" ◀ PIÙ PROBABILE":""}</b>
+      <code>${fmtP(p)}${bland} <i>· quota equa ${odd(bl.p[i])}</i></code></div>
+      <div class="track">
+        <div class="unc" style="left:${Math.min(pl,ph)*100}%;width:${Math.abs(ph-pl)*100}%"></div>
+        <div class="fill ${i===best?"hl":""}" style="width:${Math.max(1,p*100)}%"></div>
+      </div></div>`;
+  }).join("");
+
+  if(S.knockout){
+    $("qualBox").style.display="flex";
+    $("qualBox").innerHTML=`<b>PASSAGGIO DEL TURNO</b><code>${S.A} ${fmtP(m.qualA)} · ${S.B} ${fmtP(1-m.qualA)}</code>`;
+  } else $("qualBox").style.display="none";
+
+  $("markets").innerHTML=[["Over 2.5",m.pOver],["Under 2.5",1-m.pOver],["Gol (GG)",m.pGG],["No Gol (NG)",1-m.pGG]]
+    .map(([l,p])=>`<div class="row"><span>${l}</span><code>${fmtP(p)} <i>(${odd(p)})</i></code></div>`).join("");
+  $("resNameA").textContent=A.f+" "+S.A; $("resNameB").textContent=S.B+" "+B.f;
+  $("blendRow").style.display = bl.mkt ? "flex" : "none";
+  $("blendLab").textContent = `${Math.round(S.blendW*100)}% mercato · ${Math.round((1-S.blendW)*100)}% modello`;
+
+  window._m=m; window._bl=bl;
+  renderValue(m,bl); renderStats(); renderMultigoal(m); renderScoreGrid(m); renderScorers(m);
+}
+
+function renderValue(m,bl){
+  const mkt=bl.mkt;
+  $("marginInfo").textContent = mkt
+    ? `Margine bookmaker 1X2: ${(mkt.margin*100).toFixed(1)}% · mercato senza margine: 1 → ${fmtP(mkt.p[0])} · X → ${fmtP(mkt.p[1])} · 2 → ${fmtP(mkt.p[2])}`
+    : "";
+  const rows=[
+    [`1 · ${S.A}`, num(S.odds.o1), bl.p[0]],
+    ["X · pareggio", num(S.odds.ox), bl.p[1]],
+    [`2 · ${S.B}`, num(S.odds.o2), bl.p[2]],
+    ["Over 2.5", num(S.odds.over), m.pOver],
+    ["Under 2.5", num(S.odds.under), 1-m.pOver],
+    ["Gol (GG)", num(S.odds.gg), m.pGG],
+    ["No Gol (NG)", num(S.odds.ng), 1-m.pGG],
+  ].filter(r=>r[1]);
+  if(!rows.length){
+    $("valueTable").innerHTML=`<div style="font-size:13px;color:var(--dim);font-style:italic">Nessuna quota inserita — compila almeno un campo.</div>`;
+    return;
+  }
+  let html=`<div class="vgrid hdr"><div>ESITO</div><div>QUOTA</div><div>P. BOOK</div><div>P. STIMATA</div><div>EV</div><div>VERDETTO</div></div>`;
+  rows.forEach(([lab,o,p])=>{
+    const ev=p*o-1, isV=ev>0.03, isT=ev<-0.08;
+    const kelly = isV ? Math.max(0,(p*o-1)/(o-1))/4 : 0; // Kelly/4, prudente
+    html+=`<div class="vgrid ${isV?"value":""}">
+      <div class="name" style="font-weight:${isV?800:400}">${lab}</div>
+      <div>${o.toFixed(2)}</div><div>${(100/o).toFixed(1)}%</div><div>${(p*100).toFixed(1)}%</div>
+      <div class="${ev>0?"ev-pos":"ev-neg"}">${ev>0?"+":""}${(ev*100).toFixed(1)}%</div>
+      <div class="verdict" style="color:${isV?"var(--ok)":isT?"var(--red)":"var(--dim)"}">${isV?`★ VALORE <span style="font-weight:400;color:var(--dim)">(Kelly/4: ${(kelly*100).toFixed(1)}%)</span>`:isT?"quota scarsa":"in linea"}</div>
+    </div>`;
+  });
+  html+=`<div style="font-size:11px;color:var(--dim);margin-top:8px;line-height:1.5">
+    <b>P. stimata</b> = probabilità fusa mercato+modello per l'1X2 (più affidabile del modello puro),
+    modello puro per gli altri mercati. <b>EV</b> = p × quota − 1; ★ solo sopra +3%.
+    <b>Kelly/4</b> = frazione di bankroll massima suggerita dalla teoria, già ridotta di 4 volte per
+    prudenza — mai superarla, e conta che anche le puntate "di valore" perdono spesso.</div>`;
+  $("valueTable").innerHTML=html;
+}
+
+function renderMultigoal(m){
+  // fasce standard sul totale gol della partita
+  const bands = [[0,1],[1,2],[2,3],[1,3],[2,4],[3,9]];
+  let html="";
+  bands.forEach(([lo,hi])=>{
+    const p = m.fullScores.filter(s=>s.a+s.b>=lo && s.a+s.b<=hi).reduce((s,x)=>s+x.p,0);
+    const label = hi===9 ? `Multigol ${lo}+` : `Multigol ${lo}-${hi}`;
+    html += `<div class="row"><span>${label}</span><code>${fmtP(p)} <i>(${odd(p)})</i></code></div>`;
+  });
+  $("multigoal").innerHTML = html;
+}
+
+function renderScoreGrid(m){
+  const MAXG=5;
+  let html = `<table style="border-collapse:collapse;font-size:12px;font-family:monospace;width:100%">
+    <tr><td></td>` + Array.from({length:MAXG+1},(_,b)=>`<td style="text-align:center;padding:3px;font-weight:700;color:var(--red)">${b}</td>`).join("") + `</tr>`;
+  for(let a=0;a<=MAXG;a++){
+    html += `<tr><td style="font-weight:700;color:var(--red);padding:3px">${a}</td>`;
+    for(let b=0;b<=MAXG;b++){
+      const cell = m.fullScores.find(s=>s.a===a&&s.b===b);
+      const p = cell ? cell.p : 0;
+      const isTop = m.scores[0] && m.scores[0].a===a && m.scores[0].b===b;
+      html += `<td style="text-align:center;padding:3px;border:1px solid var(--line);background:${isTop?"#F3FAF0":"#fff"};font-weight:${isTop?800:400}">${(p*100).toFixed(1)}</td>`;
+    }
+    html += `</tr>`;
+  }
+  html += `</table><div style="font-size:11px;color:var(--dim);margin-top:6px">Valori in % probabilità. Righe = gol ${S.A}, colonne = gol ${S.B}. Il resto (uno dei due oltre 5 gol) è residuale.</div>`;
+  $("scoreGrid").innerHTML = html;
+}
+
+function renderScorers(m){
+  if(!scorersData){
+    $("scorersHint").style.display="block";
+    $("scorersTable").innerHTML="";
+    return;
+  }
+  $("scorersHint").style.display="none";
+  const relevant = scorersData.filter(s => s.team===S.A || s.team===S.B);
+  if(!relevant.length){
+    $("scorersTable").innerHTML = `<div style="font-size:13px;color:var(--dim);font-style:italic">Nessun marcatore registrato ancora per queste due squadre nel torneo.</div>`;
+    return;
+  }
+  // gol attesi della squadra + quota di gol del giocatore sul totale dei gol della sua squadra nel torneo
+  const teamGoals = {};
+  scorersData.forEach(s=>{ teamGoals[s.team] = (teamGoals[s.team]||0) + s.goals; });
+  const lambdaOf = t => t===S.A ? m.lA : m.lB;
+  let html = `<div class="vgrid hdr"><div>GIOCATORE</div><div>SQUADRA</div><div>GOL</div><div>ASSIST</div><div>P. SEGNA</div><div>QUOTA EQUA</div></div>`;
+  relevant.sort((x,y)=>y.goals-x.goals).slice(0,12).forEach(s=>{
+    const share = teamGoals[s.team] > 0 ? s.goals/teamGoals[s.team] : 0;
+    const lambdaPlayer = lambdaOf(s.team) * share;
+    const pScore = 1 - Math.exp(-lambdaPlayer);
+    html += `<div class="vgrid">
+      <div class="name">${s.name}</div><div>${team(s.team).f}</div>
+      <div>${s.goals}</div><div>${s.assists}</div>
+      <div>${fmtP(pScore)}</div><div>${odd(pScore)}</div></div>`;
+  });
+  html += `<div style="font-size:11px;color:var(--dim);margin-top:8px;line-height:1.5">
+    Stima: gol attesi della squadra × quota-parte dei gol del giocatore sul totale-torneo della sua
+    nazionale. È una stima grezza (non tiene conto di titolarità, inforturi, ruolo) — utile per farsi
+    un'idea, non un pronostico rifinito. I <b>cartellini</b> non sono disponibili nel piano gratuito
+    dell'API: servirebbe un piano a pagamento di un provider sportivo per quel dato.</div>`;
+  $("scorersTable").innerHTML = html;
+}
+
+
+function renderStats(){
+  const done=predLog.filter(x=>x.result);
+  const pend=predLog.filter(x=>!x.result);
+  if(!predLog.length){
+    $("statsBox").innerHTML=`<span style="font-size:13px;color:var(--dim);font-style:italic">Nessun pronostico salvato ancora.</span>`;
+    $("logBox").innerHTML=""; return;
+  }
+  let stats="";
+  if(done.length){
+    const avg=done.reduce((s,x)=>s+x.result.brier,0)/done.length;
+    const mktDone=done.filter(x=>x.result.mktBrier!=null);
+    const mktAvg=mktDone.length?mktDone.reduce((s,x)=>s+x.result.mktBrier,0)/mktDone.length:null;
+    stats+=`<span class="stat">Pronostici valutati<b>${done.length}</b></span>`;
+    stats+=`<span class="stat">Brier medio schedina<b style="color:${avg<0.5?"var(--ok)":"var(--ink)"}">${avg.toFixed(3)}</b></span>`;
+    stats+=`<span class="stat">Riferimento "a caso"<b>0.667</b></span>`;
+    if(mktAvg!=null) stats+=`<span class="stat">Brier medio mercato<b>${mktAvg.toFixed(3)}</b></span>`;
+  }
+  if(pend.length) stats+=`<span class="stat">In attesa di risultato<b>${pend.length}</b></span>`;
+  $("statsBox").innerHTML=stats;
+  $("logBox").innerHTML=predLog.slice(-8).reverse().map(x=>{
+    const pr=`[${x.p.map(p=>(p*100).toFixed(0)).join("/")}]`;
+    if(!x.result) return `<div class="logrow"><span>${x.A} – ${x.B} ${pr} (${x.src})</span><span style="color:var(--dim)">in attesa</span></div>`;
+    const r=x.result, cls=r.brier<0.5?"g":"b";
+    return `<div class="logrow"><span>${x.A} ${r.gA} – ${r.gB} ${x.B} ${pr}</span><span class="${cls}">Brier ${r.brier.toFixed(3)}${r.mktBrier!=null?` · mkt ${r.mktBrier.toFixed(3)}`:""}</span></div>`;
+  }).join("");
+}
+
+// ================= eventi =================
+$("eloA").onchange=e=>{eloStore[S.A]=Number(e.target.value)||0;save("schedina_elo",eloStore);render();};
+$("eloB").onchange=e=>{eloStore[S.B]=Number(e.target.value)||0;save("schedina_elo",eloStore);render();};
+$("homeA").onclick=()=>{S.home=S.home==="A"?"N":"A";render();};
+$("homeB").onclick=()=>{S.home=S.home==="B"?"N":"B";render();};
+$("modeG").onclick=()=>{S.knockout=false;render();};
+$("modeK").onclick=()=>{S.knockout=true;render();};
+$("blendW").oninput=e=>{S.blendW=e.target.value/100;render();};
+
+$("savePred").onclick=()=>{
+  const bl=window._bl;
+  const mkt=bl.mkt;
+  // sovrascrive un eventuale pronostico pendente per la stessa coppia
+  predLog=predLog.filter(x=>x.result||!(x.A===S.A&&x.B===S.B));
+  predLog.push({date:new Date().toISOString().slice(0,10),A:S.A,B:S.B,p:bl.p,src:bl.src,mkt:mkt?mkt.p:null,result:null});
+  save("schedina_log",predLog);
+  $("flashPred").textContent="✓ salvato";
+  setTimeout(()=>$("flashPred").textContent="",3000);
+  renderStats();
+};
+
+$("saveResult").onclick=()=>{
+  const gA=Math.max(0,parseInt($("golA").value)||0), gB=Math.max(0,parseInt($("golB").value)||0);
+  const d=updateElo(S.A,S.B,gA,gB,S.home);
+  const outIdx=gA>gB?0:gA===gB?1:2;
+  const pending=predLog.find(x=>!x.result&&x.A===S.A&&x.B===S.B);
+  let msg=`✓ Elo: ${S.A} ${d>=0?"+":""}${d} · ${S.B} ${d>=0?"−":"+"}${Math.abs(d)}`;
+  if(pending){
+    pending.result={gA,gB,brier:brier(pending.p,outIdx),mktBrier:pending.mkt?brier(pending.mkt,outIdx):null};
+    save("schedina_log",predLog);
+    msg+=` · Brier ${pending.result.brier.toFixed(3)}`;
+  }
+  $("flash").textContent=msg;
+  setTimeout(()=>$("flash").textContent="",5000);
+  render();
+};
+
+$("resetElo").onclick=()=>{eloStore={};save("schedina_elo",eloStore);render();};
+$("resetLog").onclick=()=>{predLog=[];save("schedina_log",predLog);renderStats();};
+
+$("apiKey").value = apiKey;
+$("saveKey").onclick=()=>{ apiKey=$("apiKey").value.trim(); save("schedina_apikey",apiKey); fetchLive(); };
+$("refreshNow").onclick=fetchLive;
+
+buildSelects(); buildOddsInputs(); render();
+if(apiKey) fetchLive();
+setInterval(()=>{ if(apiKey) fetchLive(); }, 60000); // 1 richiesta/minuto, ben sotto il limite di 10/min
+
+</script>
+</body>
+</html>
