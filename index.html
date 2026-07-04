@@ -326,8 +326,19 @@ let scorersData = null;
 const LIVE_API_BASE = "https://nostrabettus-proxy.conlh.workers.dev";
 
 // ================= stato =================
-let S = { A:"Argentina", B:"Capo Verde", home:"N", knockout:true, blendW:0.65, fixtureView:"upcoming",
+let S = { A:FIXTURES[0].a, B:FIXTURES[0].b, home:"N", knockout:true, blendW:0.65, fixtureView:"upcoming",
           odds:{o1:"",ox:"",o2:"",over:"",under:"",gg:"",ng:""} };
+let userPickedMatch = false; // finché l'utente non sceglie una partita, mostriamo quella più vicina
+
+// tra le partite live non ancora finite: quelle in corso prima, poi la più vicina nel tempo
+function nearestFixture(){
+  if(!liveFixtures || !liveFixtures.length) return null;
+  const open = liveFixtures.filter(m => m.status!=="FINISHED");
+  if(!open.length) return null;
+  const live = open.filter(m => m.status==="IN_PLAY" || m.status==="PAUSED");
+  if(live.length) return live[0];
+  return open.slice().sort((a,b)=> new Date(a.date)-new Date(b.date))[0];
+}
 
 // ================= modello =================
 const fact = n => n<=1?1:n*fact(n-1);
@@ -394,6 +405,10 @@ async function fetchLive(){
         golA: m.score.fullTime.home, golB: m.score.fullTime.away,
         date: m.utcDate,
       }));
+    if(!userPickedMatch){
+      const nf = nearestFixture();
+      if(nf){ S.A=nf.a; S.B=nf.b; S.home="N"; }
+    }
     if(sRes.ok){
       const sData = await sRes.json();
       scorersData = sData.scorers
@@ -460,7 +475,7 @@ function buildSelects(){
       sel.appendChild(og);
     });
     sel.value=S[key];
-    sel.onchange=()=>{S[key]=sel.value; render();};
+    sel.onchange=()=>{S[key]=sel.value; userPickedMatch=true; render();};
   });
 }
 function buildOddsInputs(){
@@ -497,7 +512,7 @@ function buildFixtures(){
     else if(fx.status==="FINISHED") tag = `Finale ${fx.golA}-${fx.golB}`;
     else if(fx.status==="SCHEDULED"||fx.status==="TIMED") tag = new Date(fx.date).toLocaleString("it-IT",{weekday:"short",hour:"2-digit",minute:"2-digit"});
     b.innerHTML=`${team(fx.a).f} ${fx.a} – ${fx.b} ${team(fx.b).f} <em>· ${tag}</em>`;
-    b.onclick=()=>{S.A=fx.a;S.B=fx.b;S.home="N";$("selA").value=fx.a;$("selB").value=fx.b;render();};
+    b.onclick=()=>{S.A=fx.a;S.B=fx.b;S.home="N";userPickedMatch=true;$("selA").value=fx.a;$("selB").value=fx.b;render();};
     $("fixtures").appendChild(b);
   });
 }
