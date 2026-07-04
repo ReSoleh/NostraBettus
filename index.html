@@ -81,6 +81,13 @@
   .row code { font-variant-numeric:tabular-nums; }
   .row code i { color:var(--muted); font-style:normal; }
 
+  /* heatmap combo */
+  .scoregrid-wrap { overflow-x:auto; }
+  table.heatmap { border-collapse:separate; border-spacing:3px; font-size:12.5px; width:100%; }
+  table.heatmap th { font-weight:600; color:var(--muted); padding:6px; text-align:center; font-size:11px; }
+  table.heatmap td { text-align:center; padding:10px 4px; border-radius:6px; font-variant-numeric:tabular-nums; font-weight:500; }
+  table.heatmap td.top { box-shadow:inset 0 0 0 2px var(--ink); font-weight:700; }
+
   /* accordion sections */
   details.box { border:1px solid var(--line); border-radius:10px; overflow:hidden; margin-bottom:16px; background:var(--surface); }
   details.box > summary { list-style:none; cursor:pointer; padding:14px 16px; font-size:12.5px; font-weight:700; letter-spacing:.5px; text-transform:uppercase; color:var(--ink); background:var(--surface-2); display:flex; justify-content:space-between; align-items:center; gap:8px; }
@@ -92,7 +99,6 @@
   .hint { font-size:13px; color:var(--muted); margin-bottom:12px; line-height:1.55; }
 
   .apirow { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
-  .apirow input { flex:1; min-width:220px; padding:10px; font-variant-numeric:tabular-nums; font-size:13px; border:1px solid var(--line); border-radius:8px; background:var(--surface-2); color:var(--ink); font-family:inherit; }
 
   .oddsgrid { display:grid; grid-template-columns:repeat(auto-fit,minmax(86px,1fr)); gap:8px; margin-bottom:14px; }
   .oddsgrid .lab { font-size:10px; letter-spacing:.5px; text-transform:uppercase; color:var(--muted); font-weight:700; margin-bottom:3px; }
@@ -144,23 +150,22 @@
     <details class="box">
       <summary>Dati live — football-data.org</summary>
       <div class="bbody">
-        <div class="hint">Incolla qui la tua chiave API gratuita (2 minuti su
-        <b>football-data.org</b> → Register → arriva via email, nessuna carta richiesta).
-        Con la chiave: partite, risultati ed Elo si aggiornano da soli, più marcatori/assist reali.
-        Senza chiave, il tool funziona lo stesso ma con inserimento manuale.
-        <br><b>Nota:</b> questa funzione richiede che la pagina sia aperta via http/https (es. su
-        GitHub Pages) — aprendo il file direttamente dal computer (<code>file://</code>) il browser
-        blocca la richiesta per policy di sicurezza (CORS), quindi qui in locale può non funzionare.</div>
+        <div class="hint">Partite, risultati, Elo e marcatori/assist si aggiornano da soli ogni minuto
+        tramite un piccolo servizio che tiene la chiave API al sicuro lato server (il browser non la
+        vede mai). Se per qualche motivo il servizio non risponde, il tool resta comunque utilizzabile
+        con inserimento manuale delle squadre e dei risultati.</div>
         <div class="apirow">
-          <input id="apiKey" type="text" placeholder="La tua X-Auth-Token qui">
-          <button class="btn" id="saveKey">Salva e collega</button>
           <button class="btn ghost" id="refreshNow">🔄 Aggiorna ora</button>
         </div>
         <div id="apiStatus" style="font-size:12px;margin-top:8px;color:var(--muted)"></div>
       </div>
     </details>
 
-    <p class="eyebrow">Partite in programma — clicca per caricare</p>
+    <p class="eyebrow">Partite — clicca per caricare</p>
+    <div class="modes" style="margin-bottom:10px">
+      <button id="viewUpcoming" class="on">Prossime</button>
+      <button id="viewRecent">Risultati recenti</button>
+    </div>
     <div class="fixtures" id="fixtures"></div>
 
     <div class="pickers">
@@ -193,6 +198,11 @@
     <div class="cols">
       <div class="col"><p class="eyebrow">Altri mercati</p><div id="markets"></div></div>
       <div class="col"><p class="eyebrow">Risultati più probabili</p><div id="topScores"></div></div>
+    </div>
+
+    <div style="margin-top:20px">
+      <p class="eyebrow">Scommesse combinate (multipla) — esito + mercato gol</p>
+      <div id="combos"></div>
     </div>
 
     <details class="box">
@@ -313,12 +323,14 @@ const getElo = n => eloStore[n] ?? BASE_TEAMS.find(t=>t.n===n).e;
 const team   = n => BASE_TEAMS.find(t=>t.n===n);
 
 let processed = load("schedina_processed", []); // ID partite già usate per aggiornare Elo
-let apiKey = load("schedina_apikey", "");
 let liveFixtures = null; // popolato da fetch API, se disponibile
 let scorersData = null;
 
+// proxy che tiene la chiave football-data.org lato server (niente CORS, niente chiave nel browser)
+const LIVE_API_BASE = "https://nostrabettus-proxy.conlh.workers.dev";
+
 // ================= stato =================
-let S = { A:"Argentina", B:"Capo Verde", home:"N", knockout:true, blendW:0.65,
+let S = { A:"Argentina", B:"Capo Verde", home:"N", knockout:true, blendW:0.65, fixtureView:"upcoming",
           odds:{o1:"",ox:"",o2:"",over:"",under:"",gg:"",ng:""} };
 
 // ================= modello =================
@@ -368,16 +380,15 @@ function updateElo(nA,nB,gA,gB,home){
   return delta;
 }
 
-// ================= dati live (football-data.org) =================
+// ================= dati live (via proxy football-data.org) =================
 async function fetchLive(){
-  if(!apiKey){ $("apiStatus").innerHTML = `<span style="color:var(--muted)">Nessuna chiave inserita — modalità manuale.</span>`; return; }
   $("apiStatus").innerHTML = `<span style="color:var(--muted)">Aggiornamento in corso…</span>`;
   try{
     const [mRes, sRes] = await Promise.all([
-      fetch("https://api.football-data.org/v4/competitions/WC/matches", { headers:{ "X-Auth-Token": apiKey } }),
-      fetch("https://api.football-data.org/v4/competitions/WC/scorers?limit=50", { headers:{ "X-Auth-Token": apiKey } }),
+      fetch(`${LIVE_API_BASE}/matches`),
+      fetch(`${LIVE_API_BASE}/scorers`),
     ]);
-    if(!mRes.ok) throw new Error("Chiave non valida o limite richieste superato (10/min sul piano free).");
+    if(!mRes.ok) throw new Error("Servizio dati live non disponibile al momento.");
     const mData = await mRes.json();
     liveFixtures = mData.matches
       .filter(m => NAME_MAP[m.homeTeam?.name] && NAME_MAP[m.awayTeam?.name])
@@ -437,6 +448,17 @@ function blended(m){
 // Brier multi-classe su 1X2
 const brier = (p,outIdx) => p.reduce((s,pi,i)=>s+Math.pow(pi-(i===outIdx?1:0),2),0);
 
+// ================= heatmap colore (per le scommesse combinate) =================
+const HEAT_STOPS = ["#E3F3EF","#C3E6DD","#9AD5C6","#6BC0AC","#3FA890","#1F8F76","#146B58"];
+const hexToRgb = h => { h=h.replace("#",""); return [0,2,4].map(i=>parseInt(h.slice(i,i+2),16)); };
+const rgbToHex = ([r,g,b]) => "#"+[r,g,b].map(v=>Math.round(v).toString(16).padStart(2,"0")).join("");
+function heatColor(t){
+  t=Math.max(0,Math.min(1,t));
+  const n=HEAT_STOPS.length-1, pos=t*n, i=Math.min(n-1,Math.floor(pos)), f=pos-i;
+  const c0=hexToRgb(HEAT_STOPS[i]), c1=hexToRgb(HEAT_STOPS[i+1]);
+  return rgbToHex(c0.map((v,k)=>v+(c1[k]-v)*f));
+}
+
 // ================= rendering =================
 const $ = id => document.getElementById(id);
 const fmtP = p => (p*100).toFixed(1)+"%";
@@ -466,7 +488,22 @@ function buildOddsInputs(){
 }
 function buildFixtures(){
   $("fixtures").innerHTML="";
-  const list = liveFixtures && liveFixtures.length ? liveFixtures : FIXTURES.map(fx=>({a:fx.a,b:fx.b,lab:fx.lab,status:null}));
+  $("viewUpcoming").className = S.fixtureView==="recent" ? "" : "on";
+  $("viewRecent").className = S.fixtureView==="recent" ? "on" : "";
+  const wantRecent = S.fixtureView==="recent";
+  let list;
+  if(liveFixtures && liveFixtures.length){
+    list = liveFixtures.filter(m => wantRecent ? m.status==="FINISHED" : m.status!=="FINISHED");
+    if(wantRecent) list = list.slice().sort((a,b)=> new Date(b.date)-new Date(a.date));
+  } else {
+    list = wantRecent ? [] : FIXTURES.map(fx=>({a:fx.a,b:fx.b,lab:fx.lab,status:null}));
+  }
+  if(!list.length){
+    $("fixtures").innerHTML = `<span style="font-size:12.5px;color:var(--muted);padding:6px 2px 0;display:inline-block">${wantRecent
+      ? "Nessun risultato recente disponibile (serve la connessione ai dati live)."
+      : "Nessuna partita in programma trovata."}</span>`;
+    return;
+  }
   list.forEach(fx=>{
     const b=document.createElement("button");
     b.className="fx"+(S.A===fx.a&&S.B===fx.b?" on":"");
@@ -532,7 +569,7 @@ function render(){
   $("blendLab").textContent = `${Math.round(S.blendW*100)}% mercato · ${Math.round((1-S.blendW)*100)}% modello`;
 
   window._m=m; window._bl=bl;
-  renderValue(m,bl); renderStats(); renderTopScores(m); renderScorers(m);
+  renderValue(m,bl); renderStats(); renderTopScores(m); renderCombos(m); renderScorers(m);
 }
 
 function renderValue(m,bl){
@@ -584,6 +621,42 @@ function renderTopScores(m){
     </div>`;
   }).join("");
   $("topScores").innerHTML = html;
+}
+
+function renderCombos(m){
+  const rows = [
+    { label:`1 · ${S.A}`, test:(a,b)=>a>b },
+    { label:"X · Pareggio", test:(a,b)=>a===b },
+    { label:`2 · ${S.B}`, test:(a,b)=>a<b },
+  ];
+  const cols = [
+    { label:"Gol (GG)", test:(a,b)=>a>0&&b>0 },
+    { label:"No Gol (NG)", test:(a,b)=>a===0||b===0 },
+    { label:"Over 2.5", test:(a,b)=>a+b>2.5 },
+    { label:"Under 2.5", test:(a,b)=>a+b<=2.5 },
+  ];
+  const cells = rows.map(r=>cols.map(c=>
+    m.fullScores.filter(s=>r.test(s.a,s.b)&&c.test(s.a,s.b)).reduce((s,x)=>s+x.p,0)
+  ));
+  const maxP = Math.max(...cells.flat());
+  let bestR=0, bestC=0;
+  cells.forEach((row,ri)=>row.forEach((p,ci)=>{ if(p>cells[bestR][bestC]){bestR=ri;bestC=ci;} }));
+
+  let html = `<div class="scoregrid-wrap"><table class="heatmap"><thead><tr><th></th>`
+    + cols.map(c=>`<th>${c.label}</th>`).join("") + `</tr></thead><tbody>`;
+  rows.forEach((r,ri)=>{
+    html += `<tr><th style="text-align:right;white-space:nowrap">${r.label}</th>`;
+    cols.forEach((c,ci)=>{
+      const p = cells[ri][ci];
+      const t = maxP>0 ? p/maxP : 0;
+      const isTop = ri===bestR && ci===bestC;
+      const textColor = t>0.55 ? "#FFFFFF" : "var(--ink)";
+      html += `<td class="${isTop?"top":""}" style="background:${heatColor(t)};color:${textColor}" title="${r.label} + ${c.label}: ${(p*100).toFixed(1)}% · quota equa ${odd(p)}">${(p*100).toFixed(1)}</td>`;
+    });
+    html += `</tr>`;
+  });
+  html += `</tbody></table></div><div class="hint" style="margin:10px 0 0">Probabilità della multipla "esito + mercato gol", calcolata direttamente dalla distribuzione dei punteggi del modello (coglie la correlazione reale: es. un 2-1 conta sia per "1" che per "Gol" che per "Over 2.5"). Il riquadro cerchiato è la combo più probabile. Basato sul modello puro, non sulla fusione con le quote — utile per farsi un'idea, non un consiglio di scommessa.</div>`;
+  $("combos").innerHTML = html;
 }
 
 function renderScorers(m){
@@ -688,13 +761,13 @@ $("saveResult").onclick=()=>{
 $("resetElo").onclick=()=>{eloStore={};save("schedina_elo",eloStore);render();};
 $("resetLog").onclick=()=>{predLog=[];save("schedina_log",predLog);renderStats();};
 
-$("apiKey").value = apiKey;
-$("saveKey").onclick=()=>{ apiKey=$("apiKey").value.trim(); save("schedina_apikey",apiKey); fetchLive(); };
 $("refreshNow").onclick=fetchLive;
+$("viewUpcoming").onclick=()=>{S.fixtureView="upcoming"; render();};
+$("viewRecent").onclick=()=>{S.fixtureView="recent"; render();};
 
 buildSelects(); buildOddsInputs(); render();
-if(apiKey) fetchLive();
-setInterval(()=>{ if(apiKey) fetchLive(); }, 60000); // 1 richiesta/minuto, ben sotto il limite di 10/min
+fetchLive();
+setInterval(fetchLive, 60000); // 1 richiesta/minuto lato client; il proxy fa cache 45s condivisa tra tutti i visitatori
 
 </script>
 </body>
